@@ -5,12 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Fantasy RPG Sandbox</title>
 <style>
-  :root { --crt-main: #33ff66; --crt-dim: #15702d; --crt-glow: rgba(51,255,102,0.4); --crt-bg: #0a0d0a; --ui-bg: rgba(10,15,10,0.95); --ui-border: #33ff66; --dev-border: #f0f; }
+  :root {
+    --crt-main: #33ff66; --crt-dim: #15702d; --crt-glow: rgba(51,255,102,0.4);
+    --crt-bg: #0a0d0a; --ui-bg: rgba(10,15,10,0.95); --ui-border: #33ff66;
+    --dev-border: #c84040;
+    /* RPG panel palette — iron & parchment */
+    --p-bg:#1e1a15; --p-bg-2:#262119; --p-bg-3:#322b21; --p-bg-dark:#100d09;
+    --p-line:#4a4133; --p-line-hi:#6a5e48; --p-line-lo:#0a0806;
+    --p-text:#c8bfa8; --p-text-2:#8a7f68; --p-text-3:#5a5245;
+    --p-gold:#c9941a; --p-red:#a83a2a; --p-green:#5a8f3d; --p-blue:#557a95; --p-purple:#7a4a8a;
+  }
   body.theme-amber { --crt-main: #ffb000; --crt-dim: #885500; --crt-glow: rgba(255,176,0,0.4); --crt-bg: #0d0a03; --ui-border: #ffb000; }
   body.theme-cyan { --crt-main: #00f0ff; --crt-dim: #006677; --crt-glow: rgba(0,240,255,0.4); --crt-bg: #030a0d; --ui-border: #00f0ff; }
   * { box-sizing: border-box; }
   html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #0b0c10; }
   body { position: relative; display: flex; flex-direction: column; min-height: 600px; font-family: 'Courier New', monospace; user-select: none; touch-action: none; }
+
+  /* CRT chassis */
   .crt-chassis { position: absolute; top: 5px; bottom: 5px; left: 5px; right: 5px; margin: 0 auto; width: calc(100% - 10px); max-width: 1600px; background: linear-gradient(145deg, #484b52, #2c2e33); border-radius: 8px; padding: 12px; box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), inset 0 -1px 3px rgba(0,0,0,0.9), 0 20px 40px rgba(0,0,0,0.85); border: 3px solid #5a5d66; display: flex; flex-direction: column; z-index: 1; }
   .chassis-header { display: flex; justify-content: space-between; margin-bottom: 8px; padding: 0 4px; color: #a3a8b3; font-size: 12px; font-weight: bold; letter-spacing: 2px; flex-shrink: 0; flex-wrap: wrap; gap: 8px; }
   .screen-bezel { position: relative; background: #181a1d; border-radius: 6px; overflow: hidden; border: 3px solid #2b2d32; flex-grow: 1; box-shadow: inset 0 0 35px rgba(0,0,0,0.95); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
@@ -37,71 +48,69 @@
   .cmd-input[type="password"] { font-size: 22px; letter-spacing: 4px; font-weight: 900; }
   #gameView { padding: 0; background: #0a0a0d; }
   canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; object-fit: contain; }
-  .game-ui { position: absolute; inset: 0; pointer-events: none; font-family: Arial, sans-serif; z-index: 50; text-shadow: none; display: flex; flex-direction: column; }
+
+  /* HUD */
+  .game-ui { position: absolute; inset: 0; pointer-events: none; font-family: 'Courier New', monospace; z-index: 50; text-shadow: none; display: flex; flex-direction: column; }
   .ui-interactive { pointer-events: auto; }
-  .hud-top { position: absolute; top: 15px; left: 15px; display: flex; gap: 20px; background: rgba(10, 15, 20, 0.90); padding: 15px; border: 2px solid #555; border-radius: 8px; flex-wrap: wrap; box-shadow: 0 4px 15px rgba(0,0,0,0.8); }
-  .stat-col { display: flex; flex-direction: column; gap: 8px; width: 180px; }
-  .bar-bg { width: 100%; height: 16px; background: #222; border: 1px solid #000; position: relative; border-radius: 3px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); }
+  .hud-top { position: absolute; top: 15px; left: 15px; display: flex; gap: 18px; background: var(--p-bg); padding: 12px 14px; border: 2px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); flex-wrap: wrap; }
+  .stat-col { display: flex; flex-direction: column; gap: 6px; width: 180px; }
+  .bar-bg { width: 100%; height: 14px; background: var(--p-bg-dark); border: 2px solid; border-color: var(--p-line-lo) var(--p-line-hi) var(--p-line-hi) var(--p-line-lo); position: relative; overflow: hidden; }
   .bar-fg { height: 100%; transition: width 0.1s; }
-  .bar-text { position: absolute; inset: 0; font-size: 11px; color: white; display: flex; justify-content: center; align-items: center; font-weight: bold; text-shadow: 1px 1px 3px #000; }
-  .hud-info { display: flex; flex-direction: column; justify-content: center; font-size: 13px; font-weight: bold; color: #fff; text-shadow: 1px 1px 3px #000; gap: 5px; }
-  #boss-ui {
-    display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    width: clamp(180px, 42vw, 340px);
-    background: rgba(20, 5, 10, 0.55);
-    border: 1px solid rgba(255, 80, 80, 0.7);
-    padding: 6px 10px; border-radius: 5px; text-align: center; z-index: 60;
-    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.55);
-    pointer-events: none;
-  }
-  #boss-name-txt {
-    color: #ff8080; font-weight: 800; font-size: 12px; margin-bottom: 4px;
-    text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 1px 2px #000;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  #boss-ui .bar-bg { height: 10px; background: rgba(0,0,0,0.6); border: 1px solid rgba(0,0,0,0.9); box-shadow: inset 0 1px 2px rgba(0,0,0,0.9); }
-  #boss-ui .bar-text { font-size: 9px; letter-spacing: 1px; }
-  .side-btns { position: absolute; top: 15px; right: 15px; display: flex; gap: 15px; flex-direction: column; }
+  .bar-text { position: absolute; inset: 0; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 1px; color: #fff; display: flex; justify-content: center; align-items: center; font-weight: bold; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; }
+  .hud-info { display: flex; flex-direction: column; justify-content: center; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px; font-weight: bold; color: var(--p-text); text-shadow: 1px 1px 0 #000; gap: 4px; }
+
+  #boss-ui { display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: clamp(200px, 44vw, 360px); background: #1a0a08; border: 2px solid; border-color: #b84040 #401010 #401010 #b84040; padding: 8px 12px; text-align: center; z-index: 60; pointer-events: none; }
+  #boss-name-txt { color: #d87878; font-family: 'Courier New', monospace; font-weight: 900; font-size: 12px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 3px; text-shadow: 1px 1px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #boss-ui .bar-bg { height: 10px; background: #100404; border-color: #401010 #a83838 #a83838 #401010; }
+  #boss-ui .bar-text { font-size: 9px; letter-spacing: 2px; }
+
+  .side-btns { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; flex-direction: column; }
   @media(min-width: 600px){ .side-btns { flex-direction: row; } }
-  .icon-btn { width: 55px; height: 55px; background: rgba(20,25,35,0.95); border: 2px solid #778; border-radius: 10px; color: white; font-size: 26px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 110; user-select: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-  .icon-btn:active { transform: translateY(4px); }
-  #interact-prompt { position: absolute; bottom: 180px; width: 100%; text-align: center; font-size: clamp(16px, 2.5vw, 22px); font-weight: bold; color: #fff; text-shadow: 0 3px 6px #000, 0 0 12px rgba(0,255,255,0.8); display: none; pointer-events: none; letter-spacing: 2px; z-index: 45; }
+  .icon-btn { width: 54px; height: 54px; background: var(--p-bg-2); border: 2px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); color: var(--p-text); font-family: 'Courier New', monospace; font-weight: 900; font-size: 12px; letter-spacing: 1px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 110; user-select: none; }
+  .icon-btn:active { border-color: var(--p-line-lo) var(--p-line-hi) var(--p-line-hi) var(--p-line-lo); }
+  #interact-prompt { position: absolute; bottom: 180px; width: 100%; text-align: center; font-family: 'Courier New', monospace; font-size: clamp(14px, 2.2vw, 20px); font-weight: bold; letter-spacing: 3px; color: var(--p-gold); text-shadow: 2px 2px 0 #000; display: none; pointer-events: none; z-index: 45; }
+
   #mobile-controls { display: none; position: absolute; inset: 0; pointer-events: none; z-index: 100; }
-  .joy-base { position: absolute; bottom: 35px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.25); border-radius: 50%; pointer-events: auto; touch-action: none; }
-  .joy-thumb { position: absolute; width: 60px; height: 60px; background: rgba(255,255,255,0.8); border-radius: 50%; top: 43px; left: 43px; pointer-events: none; }
+  .joy-base { position: absolute; bottom: 35px; width: 150px; height: 150px; background: rgba(30, 24, 18, 0.4); border: 3px solid rgba(120, 100, 70, 0.55); border-radius: 50%; pointer-events: auto; touch-action: none; }
+  .joy-thumb { position: absolute; width: 60px; height: 60px; background: rgba(180, 150, 100, 0.75); border: 2px solid rgba(60, 45, 30, 0.9); border-radius: 50%; top: 43px; left: 43px; pointer-events: none; }
   #joy-move { left: clamp(15px, 5vw, 60px); }
   #joy-aim { right: clamp(15px, 5vw, 60px); }
-  .mobile-btns { position: absolute; bottom: 110px; right: clamp(30px, 9vw, 240px); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; pointer-events: auto; }
-  .m-btn { width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(145deg, #4b4b55, #222228); border: 2px solid #88a; color: #fff; font-weight: bold; font-size: 12px; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; user-select: none; touch-action: none; }
-  .m-btn-wide { grid-column: span 2; width: 100%; border-radius: 8px; height: 50px; font-size: 14px; bottom: -65px; left: 0px; position: absolute; }
-  .cd-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(255,0,50,0.65); height: 0%; pointer-events: none; }
-  .modal-overlay { position: absolute; inset: 0; background: rgba(10,12,18,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; pointer-events: auto; text-shadow: none; backdrop-filter: blur(5px); padding: 15px; }
+  .mobile-btns { position: absolute; bottom: 110px; right: clamp(30px, 9vw, 240px); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; pointer-events: auto; }
+  .m-btn { width: 62px; height: 62px; border-radius: 50%; background: var(--p-bg-3); border: 3px solid var(--p-line-hi); color: var(--p-text); font-family: 'Courier New', monospace; font-weight: bold; font-size: 11px; letter-spacing: 1px; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; user-select: none; touch-action: none; }
+  .m-btn-wide { grid-column: span 2; width: 100%; border-radius: 0; height: 48px; font-size: 13px; bottom: -65px; left: 0px; position: absolute; }
+  .cd-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(168, 58, 42, 0.7); height: 0%; pointer-events: none; }
+
+  .modal-overlay { position: absolute; inset: 0; background: rgba(8, 6, 4, 0.88); display: flex; justify-content: center; align-items: center; z-index: 1000; pointer-events: auto; text-shadow: none; padding: 15px; }
   .hidden { display: none !important; }
-  .modal-window { background: var(--ui-bg); border: 2px solid var(--ui-border); border-radius: 10px; padding: 25px; color: var(--crt-main); display: flex; flex-direction: column; max-height: 100%; max-width: 100%; width: 900px; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.9); box-sizing: border-box; }
-  .modal-header { font-size: 20px; font-weight: 900; border-bottom: 2px solid var(--crt-dim); padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 2px; }
-  .menu-btn { background: linear-gradient(180deg, #1f1f26, #121215); color: var(--crt-main); border: 1px solid var(--crt-dim); padding: 14px 18px; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: bold; transition: all 0.2s; border-radius: 6px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.6); text-transform: uppercase; }
-  .menu-btn:hover:not(:disabled) { background: linear-gradient(180deg, #2a2a33, #1f1f26); border-color: var(--crt-main); transform: translateY(-2px); }
-  .rpg-master { position: absolute; inset: 15px; max-width: 1200px; max-height: 85vh; margin: auto; background: #383838; border-radius: 12px; border: 2px solid #222; display: flex; font-family: 'Segoe UI', Tahoma, sans-serif; box-shadow: 0 10px 50px rgba(0,0,0,0.9); color: #eee; overflow: hidden; text-shadow: none; }
-  .rpg-tabs { width: 48px; background: #2b2b2b; display: flex; flex-direction: column; border-right: 2px solid #1a1a1a; z-index: 10; }
-  .rpg-tab { flex: 0 0 120px; display: flex; justify-content: center; align-items: center; background: #333; border-bottom: 2px solid #1a1a1a; border-right: 4px solid transparent; cursor: pointer; color: #888; }
-  .rpg-tab:hover { background: #3a3a3a; color: #ccc; }
-  .rpg-tab.active { background: #404040; border-right: 4px solid #fff; color: #fff; }
-  .rpg-tab-text { transform: rotate(-90deg); font-weight: bold; letter-spacing: 2px; font-size: 16px; white-space: nowrap; }
-  .rpg-close-btn-abs { position: absolute; top: 15px; right: 15px; background: #ef4444; border: 2px solid #7f1d1d; color: #fff; width: 32px; height: 32px; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 50; }
-  .rpg-content { flex: 1; display: flex; flex-direction: column; padding: 25px; position: relative; background: #333; }
+  .modal-window { background: var(--p-bg-2); border: 3px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); padding: 22px; color: var(--p-text); display: flex; flex-direction: column; max-height: 100%; max-width: 100%; width: 900px; overflow-y: auto; box-sizing: border-box; font-family: 'Courier New', monospace; }
+  .modal-header { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; border-bottom: 2px solid var(--p-line); padding-bottom: 10px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; color: var(--p-gold); }
+  .menu-btn { background: var(--p-bg-3); color: var(--p-text); border: 2px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); padding: 14px 18px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: bold; letter-spacing: 1px; text-align: center; text-transform: uppercase; }
+  .menu-btn:hover:not(:disabled) { background: var(--p-bg); }
+
+  /* RPG master modal */
+  .rpg-master { position: absolute; inset: 15px; max-width: 1200px; max-height: 85vh; margin: auto; background: var(--p-bg-2); border: 3px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); display: flex; font-family: 'Courier New', monospace; color: var(--p-text); overflow: hidden; }
+  .rpg-tabs { width: 52px; background: var(--p-bg-dark); display: flex; flex-direction: column; border-right: 2px solid var(--p-line-lo); z-index: 10; }
+  .rpg-tab { flex: 0 0 120px; display: flex; justify-content: center; align-items: center; background: var(--p-bg); border-bottom: 2px solid var(--p-line-lo); border-right: 3px solid transparent; cursor: pointer; color: var(--p-text-3); font-family: 'Courier New', monospace; }
+  .rpg-tab:hover { background: var(--p-bg-2); color: var(--p-text-2); }
+  .rpg-tab.active { background: var(--p-bg-3); border-right-color: var(--p-gold); color: var(--p-gold); }
+  .rpg-tab-text { transform: rotate(-90deg); font-weight: bold; letter-spacing: 3px; font-size: 14px; white-space: nowrap; text-transform: uppercase; }
+  .rpg-close-btn-abs { position: absolute; top: 12px; right: 12px; background: var(--p-red); border: 2px solid; border-color: #d06060 #401010 #401010 #d06060; color: #fff; width: 30px; height: 30px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; cursor: pointer; z-index: 50; }
+  .rpg-close-btn-abs:active { border-color: #401010 #d06060 #d06060 #401010; }
+  .rpg-content { flex: 1; display: flex; flex-direction: column; padding: 22px; position: relative; background: var(--p-bg-2); }
   .tab-pane { display: flex; flex-direction: column; height: 100%; gap: 15px; }
-  .gear-layout { flex-direction: row; gap: 20px; }
-  .gear-left { flex: 0 0 260px; background: #3a3a3a; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; border: 2px solid #222; }
-  .gear-right { flex: 1; background: #3a3a3a; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; border: 2px solid #222; }
+  .gear-layout { flex-direction: row; gap: 18px; }
+  .gear-left { flex: 0 0 260px; background: var(--p-bg); border: 2px solid; border-color: var(--p-line-lo) var(--p-line-hi) var(--p-line-hi) var(--p-line-lo); padding: 14px; display: flex; flex-direction: column; }
+  .gear-right { flex: 1; background: var(--p-bg); border: 2px solid; border-color: var(--p-line-lo) var(--p-line-hi) var(--p-line-hi) var(--p-line-lo); padding: 14px; display: flex; flex-direction: column; }
   .paperdoll { position: relative; width: 100%; height: 260px; margin-bottom: 15px; }
-  .sil-head { position: absolute; width: 36px; height: 36px; top: 10px; left: 50%; transform: translateX(-50%); background: #2a2a2a; border-radius: 50%; border: 2px solid #222; }
-  .sil-body { position: absolute; width: 64px; height: 90px; top: 56px; left: 50%; transform: translateX(-50%); background: #2a2a2a; border-radius: 8px; border: 2px solid #222; }
-  .sil-legs { position: absolute; width: 44px; height: 70px; top: 156px; left: 50%; transform: translateX(-50%); background: #2a2a2a; border-radius: 6px; border: 2px solid #222; }
-  .rpg-slot { width: 54px; height: 54px; background: #2b2b2b; border-radius: 8px; border: 3px solid #555; display: flex; justify-content: center; align-items: center; position: relative; font-size: 26px; cursor: pointer; }
-  .rpg-slot:hover { filter: brightness(1.2); }
-  .rpg-slot.selected { box-shadow: 0 0 0 2px #fff; border-color: #fff !important; }
-  .rpg-slot .stack { position: absolute; bottom: 2px; right: 4px; font-size: 11px; font-weight: bold; color: #fff; }
+  .sil-head, .sil-body, .sil-legs { position: absolute; background: var(--p-bg-dark); border: 2px solid var(--p-line-lo); }
+  .sil-head { width: 36px; height: 36px; top: 10px; left: 50%; transform: translateX(-50%); }
+  .sil-body { width: 64px; height: 90px; top: 56px; left: 50%; transform: translateX(-50%); }
+  .sil-legs { width: 44px; height: 70px; top: 156px; left: 50%; transform: translateX(-50%); }
+
+  .rpg-slot { width: 56px; height: 56px; background: var(--p-bg-3); border: 3px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); display: flex; justify-content: center; align-items: center; position: relative; font-family: 'Courier New', monospace; font-weight: bold; font-size: 24px; color: var(--p-text); cursor: pointer; }
+  .rpg-slot:hover { background: #3a3226; }
+  .rpg-slot.selected { outline: 2px solid var(--p-gold); outline-offset: 1px; }
+  .rpg-slot .stack { position: absolute; bottom: 1px; right: 3px; font-size: 11px; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 #000; }
   #pd-helmet { position: absolute; top: 0px; left: 50%; transform: translateX(-50%); }
   #pd-chest { position: absolute; top: 74px; left: 50%; transform: translateX(-50%); }
   #pd-weapon { position: absolute; top: 74px; left: 10px; }
@@ -109,56 +118,73 @@
   #pd-boots { position: absolute; top: 148px; left: 50%; transform: translateX(-50%); }
   #pd-acc1 { position: absolute; top: 148px; right: 10px; }
   #pd-acc2 { position: absolute; top: 148px; left: 10px; }
-  .rpg-slot .slot-icon { font-size: 26px; }
+  .rpg-slot .slot-icon { font-size: 24px; }
+
   .gear-abilities { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
-  .ability-slot { aspect-ratio: 1; background: #2b2b2b; border-radius: 10px; border: 2px solid #555; display: flex; justify-content: center; align-items: center; font-size: 22px; position: relative; color: #ddd; }
-  .ability-slot .keybind { position: absolute; bottom: 4px; left: 6px; font-weight: 900; font-size: 12px; color: #fff; }
-  .ab-1 { border-color: #a855f7; }
-  .ab-2 { border-color: #3b82f6; }
+  .ability-slot { aspect-ratio: 1; background: var(--p-bg-3); border: 2px solid var(--p-line); display: flex; justify-content: center; align-items: center; font-size: 20px; position: relative; color: var(--p-text); }
+  .ability-slot .keybind { position: absolute; bottom: 3px; left: 5px; font-family: 'Courier New', monospace; font-weight: 900; font-size: 11px; color: var(--p-gold); }
+  .ab-1 { border-color: var(--p-purple); }
+  .ab-2 { border-color: var(--p-blue); }
+
   .grid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-right: 40px; }
-  .grid-search { background: #222; border: 2px solid #555; color: #eee; padding: 8px 14px; border-radius: 20px; outline: none; font-size: 13px; font-weight: bold; width: 160px; }
-  .item-grid-new { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 10px; overflow-y: auto; flex: 1; align-content: flex-start; padding-right: 5px; }
-  .details-pane { margin-top: 15px; height: 130px; flex-shrink: 0; background: #2b2b2b; border-radius: 8px; border: 2px solid #222; padding: 12px; display: flex; gap: 15px; align-items: center; }
-  .b-EMPTY { border-color: #444 !important; }
-  .b-COMMON { border-color: #777 !important; }
-  .b-UNCOMMON { border-color: #4ade80 !important; }
-  .b-RARE { border-color: #3b82f6 !important; }
-  .b-EPIC { border-color: #a855f7 !important; }
-  .b-LEGENDARY { border-color: #f59e0b !important; }
-  .b-MYTHIC { border-color: #ef4444 !important; }
-  .ui-btn { background: #444; border: 2px solid #555; color: #eee; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; }
-  .ui-btn:hover:not(:disabled) { background: #555; border-color: #777; }
-  .ui-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .ui-btn-primary { background: #2b552b; border-color: #3f7f3f; color: #aaffaa; }
-  .ui-btn-danger { background: #552b2b; border-color: #7f3f3f; color: #ffaaaa; }
-  .rpg-scroll::-webkit-scrollbar { width: 8px; }
-  .rpg-scroll::-webkit-scrollbar-track { background: #222; }
-  .rpg-scroll::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-  .class-card { background: #2b2b2b; border: 2px solid #444; border-radius: 8px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; position: relative; min-height: 110px; }
-  .class-card:hover { border-color: #777; }
-  .class-card.locked { opacity: 0.5; filter: grayscale(1); }
-  .class-card.active-class { border-color: #f59e0b; }
-  .keybind-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 6px; margin-bottom: 5px; font-size: 13px; font-weight: bold; }
-  .keybind-btn { background: #333; border: 2px solid #555; color: #0ff; font-weight: bold; padding: 5px 15px; border-radius: 4px; cursor: pointer; min-width: 80px; text-align: center; }
-  .binding-active { border-color: #f0f !important; color: #f0f !important; }
-  .dev-group-new { background: #2b2b2b; border: 2px solid #444; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-  .dg-card { border: 2px solid #444; padding: 18px; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #2b2b2b; border-radius: 8px; font-weight: bold; }
-  .dg-card:hover { border-color: #0ff; background: #334; }
+  .grid-search { background: var(--p-bg-dark); border: 2px solid; border-color: var(--p-line-lo) var(--p-line) var(--p-line) var(--p-line-lo); color: var(--p-text); padding: 6px 12px; outline: none; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px; width: 160px; }
+  .grid-search:focus { border-color: var(--p-gold); }
+  .grid-search::placeholder { color: var(--p-text-3); }
+  select.grid-search { cursor: pointer; }
+  .item-grid-new { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 8px; overflow-y: auto; flex: 1; align-content: flex-start; padding-right: 5px; }
+  .details-pane { margin-top: 14px; height: 130px; flex-shrink: 0; background: var(--p-bg-3); border: 2px solid var(--p-line-lo); padding: 12px; display: flex; gap: 15px; align-items: center; }
+
+  .b-EMPTY     { border-color: #332c22 #0a0806 #0a0806 #332c22 !important; }
+  .b-COMMON    { border-color: #8a8a8a #333333 #333333 #8a8a8a !important; }
+  .b-UNCOMMON  { border-color: #7ab87a #1a3a1a #1a3a1a #7ab87a !important; }
+  .b-RARE      { border-color: #6a9ad8 #1a2a4a #1a2a4a #6a9ad8 !important; }
+  .b-EPIC      { border-color: #aa6ad8 #2a1a4a #2a1a4a #aa6ad8 !important; }
+  .b-LEGENDARY { border-color: #e8b03a #4a3010 #4a3010 #e8b03a !important; }
+  .b-MYTHIC    { border-color: #e86060 #3a1010 #3a1010 #e86060 !important; }
+
+  .ui-btn { background: var(--p-bg-3); border: 2px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); color: var(--p-text); padding: 8px 16px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; }
+  .ui-btn:hover:not(:disabled) { background: #3a3226; }
+  .ui-btn:active:not(:disabled) { border-color: var(--p-line-lo) var(--p-line-hi) var(--p-line-hi) var(--p-line-lo); }
+  .ui-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ui-btn-primary { background: #2a4a24; border-color: #4a7a40 #142410 #142410 #4a7a40; color: #b8e0a0; }
+  .ui-btn-primary:hover:not(:disabled) { background: #345a2c; }
+  .ui-btn-danger { background: #4a2020; border-color: #a84040 #2a0a0a #2a0a0a #a84040; color: #e8a0a0; }
+  .ui-btn-danger:hover:not(:disabled) { background: #5a2828; }
+
+  .rpg-scroll::-webkit-scrollbar { width: 10px; }
+  .rpg-scroll::-webkit-scrollbar-track { background: var(--p-bg-dark); }
+  .rpg-scroll::-webkit-scrollbar-thumb { background: var(--p-line); border: 2px solid var(--p-bg-dark); }
+  .rpg-scroll::-webkit-scrollbar-thumb:hover { background: var(--p-line-hi); }
+
+  .class-card { background: var(--p-bg); border: 2px solid; border-color: var(--p-line) var(--p-line-lo) var(--p-line-lo) var(--p-line); padding: 12px; cursor: pointer; display: flex; flex-direction: column; position: relative; min-height: 110px; font-family: 'Courier New', monospace; }
+  .class-card:hover { background: var(--p-bg-3); border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); }
+  .class-card.locked { opacity: 0.45; filter: grayscale(1); }
+  .class-card.active-class { border-color: var(--p-gold); }
+
+  .keybind-row { display: flex; justify-content: space-between; align-items: center; background: var(--p-bg); border: 1px solid var(--p-line-lo); padding: 8px 14px; margin-bottom: 4px; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px; font-weight: bold; color: var(--p-text); }
+  .keybind-btn { background: var(--p-bg-3); border: 2px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); color: var(--p-gold); font-family: 'Courier New', monospace; font-weight: bold; padding: 4px 14px; cursor: pointer; min-width: 80px; text-align: center; font-size: 11px; letter-spacing: 1px; }
+  .binding-active { background: #3a2030; border-color: #b84040; color: #ff8080; }
+
+  .dev-group-new { background: var(--p-bg); border: 2px solid; border-color: #7a3430 #2a0a08 #2a0a08 #7a3430; padding: 14px; margin-bottom: 14px; }
+  .dg-card { border: 2px solid var(--p-line); padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--p-bg); font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 1px; }
+  .dg-card:hover { border-color: var(--p-gold); background: var(--p-bg-3); }
+
   .controls-panel { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-shrink: 0; z-index: 5; flex-wrap: wrap; gap: 12px; padding: 0 5px; }
-  .power-btn { background: linear-gradient(180deg, #3f424b, #212226); color: #c0c5d0; border: 2px solid #222; border-top-color: #666; border-radius: 6px; padding: 10px 22px; font-weight: bold; font-family: 'Courier New', monospace; font-size: 13px; cursor: pointer; box-shadow: 0 4px 0 #111; display: flex; align-items: center; gap: 10px; }
-  .power-btn:active { transform: translateY(4px); }
-  .led-indicator { width: 12px; height: 12px; border-radius: 50%; background: #1a1a20; border: 1px solid #000; }
-  .power-btn.active .led-indicator { background: #5f5; border-color: #aff; box-shadow: 0 0 12px #0f0; }
-  #ctrlBtn.active .led-indicator { background: #0ff; box-shadow: 0 0 12px #0ff; border-color: #fff; }
-  #toast-container { position: absolute; top: 90px; right: 20px; z-index: 5000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-  .toast { background: rgba(10,15,25,0.95); border: 2px solid #555; border-left: 5px solid #0ff; color: #fff; padding: 10px 16px; border-radius: 6px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.6); animation: toastIn 0.25s ease-out; max-width: 300px; }
-  .toast.toast-success { border-left-color: #4ade80; }
-  .toast.toast-warn { border-left-color: #f59e0b; }
-  .toast.toast-error { border-left-color: #ef4444; }
-  .toast.toast-info { border-left-color: #3b82f6; }
+  .power-btn { background: #2a2c30; border: 2px solid; border-color: #5a5e64 #101215 #101215 #5a5e64; color: #a8adb5; padding: 8px 18px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+  .power-btn:active { border-color: #101215 #5a5e64 #5a5e64 #101215; transform: translateY(1px); }
+  .led-indicator { width: 10px; height: 10px; border-radius: 50%; background: #14161a; border: 1px solid #000; }
+  .power-btn.active .led-indicator { background: #5f5; border-color: #aff; }
+  #ctrlBtn.active .led-indicator { background: #0ff; border-color: #fff; }
+
+  #toast-container { position: absolute; top: 90px; right: 20px; z-index: 5000; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  .toast { background: var(--p-bg-2); border: 2px solid; border-color: var(--p-line-hi) var(--p-line-lo) var(--p-line-lo) var(--p-line-hi); border-left: 4px solid var(--p-gold); color: var(--p-text); padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; letter-spacing: 1px; max-width: 300px; animation: toastIn 0.15s steps(4); }
+  .toast.toast-success { border-left-color: var(--p-green); }
+  .toast.toast-warn { border-left-color: var(--p-gold); }
+  .toast.toast-error { border-left-color: var(--p-red); }
+  .toast.toast-info { border-left-color: var(--p-blue); }
   @keyframes toastIn { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
   @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(60px); opacity: 0; } }
-  .toast.dismissing { animation: toastOut 0.25s ease-in forwards; }
+  .toast.dismissing { animation: toastOut 0.15s steps(4) forwards; }
 
   @media (max-width: 900px) {
     #boss-ui { top: 110px; width: clamp(180px, 46vw, 320px); }
@@ -176,9 +202,9 @@
     .bar-text { font-size: 9px; }
     .hud-info { font-size: 11px; gap: 3px; }
     .side-btns { top: 8px; right: 8px; gap: 8px; }
-    .icon-btn { width: 42px; height: 42px; font-size: 18px; border-radius: 8px; }
+    .icon-btn { width: 42px; height: 42px; font-size: 10px; }
     #boss-ui { top: 96px; width: clamp(160px, 62vw, 300px); }
-    .rpg-master { inset: 4px; border-radius: 6px; }
+    .rpg-master { inset: 4px; }
     .rpg-tabs { width: 36px; }
     .rpg-tab { flex: 0 0 70px; }
     .rpg-tab-text { font-size: 11px; letter-spacing: 1px; }
@@ -188,7 +214,7 @@
     .gear-left { flex: 0 0 auto; padding: 10px; }
     .gear-right { padding: 10px; }
     .paperdoll { height: 200px; }
-    .modal-window { padding: 14px; border-radius: 8px; }
+    .modal-window { padding: 14px; }
     .modal-header { font-size: 14px; padding-bottom: 8px; margin-bottom: 12px; letter-spacing: 1px; }
     .terminal-log { font-size: 12px; line-height: 1.4; }
     .cmd-input { font-size: 14px; }
@@ -201,7 +227,7 @@
   @media (max-width: 420px) {
     .stat-col { width: 100px; }
     .hud-info { font-size: 10px; }
-    .icon-btn { width: 38px; height: 38px; font-size: 16px; }
+    .icon-btn { width: 38px; height: 38px; font-size: 10px; }
     #boss-ui { top: 88px; width: clamp(150px, 70vw, 260px); }
     .rpg-tab { flex: 0 0 58px; }
     .rpg-tab-text { font-size: 10px; }
@@ -238,7 +264,7 @@
     <div id="screen" class="screen powered-off">
 
       <div id="bootView" class="view-container boot-view">
-        <div style="width: 90%; max-width: 500px; border: 2px solid var(--crt-main); padding: 30px 15px; background: rgba(0,10,0,0.8); box-shadow: 0 0 35px var(--crt-glow); border-radius: 6px;">
+        <div style="width: 90%; max-width: 500px; border: 2px solid var(--crt-main); padding: 30px 15px; background: rgba(0,10,0,0.8); box-shadow: 0 0 35px var(--crt-glow);">
           <div style="font-size: clamp(16px, 4vw, 30px); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; color: #cfc; margin-bottom: 10px;">FOUNDATION SIMULATOR</div>
           <div style="font-size: 12px; color: #bbb; font-weight: bold;">LOADING MEDIEVAL FANTASY ASSETS...</div>
         </div>
@@ -263,26 +289,26 @@
         <div class="game-ui">
           <div class="hud-top">
             <div class="stat-col">
-              <div class="bar-bg"><div id="hp-bar" class="bar-fg" style="background: linear-gradient(90deg, #c00, #ff4444); width: 100%;"></div><div id="hp-txt" class="bar-text">100/100 HP</div></div>
-              <div class="bar-bg"><div id="xp-bar" class="bar-fg" style="background: linear-gradient(90deg, #aa0, #ffeb00); width: 0%;"></div><div id="xp-txt" class="bar-text">0/100 XP</div></div>
-              <div class="bar-bg"><div id="cxp-bar" class="bar-fg" style="background: linear-gradient(90deg, #70a, #d4f); width: 0%;"></div><div id="cxp-txt" class="bar-text">0/100 C.XP</div></div>
+              <div class="bar-bg"><div id="hp-bar" class="bar-fg" style="background:#a83a2a; width: 100%;"></div><div id="hp-txt" class="bar-text">100/100 HP</div></div>
+              <div class="bar-bg"><div id="xp-bar" class="bar-fg" style="background:#c9941a; width: 0%;"></div><div id="xp-txt" class="bar-text">0/100 XP</div></div>
+              <div class="bar-bg"><div id="cxp-bar" class="bar-fg" style="background:#7a4a8a; width: 0%;"></div><div id="cxp-txt" class="bar-text">0/100 C.XP</div></div>
             </div>
             <div class="hud-info">
-              <div id="hud-level">LEVEL: <span style="color: #0ff; font-weight: 900;">1</span></div>
+              <div id="hud-level">LEVEL: <span style="color: #c9941a; font-weight: 900;">1</span></div>
               <div id="hud-class">CLASS NAME</div>
-              <div id="hud-gold" style="color: #ffd700;">GOLD: 0G</div>
-              <div id="hud-spins" style="color: #f77;">BOSS SOULS: 0</div>
+              <div id="hud-gold" style="color: #c9941a;">GOLD: 0G</div>
+              <div id="hud-spins" style="color: #c84040;">BOSS SOULS: 0</div>
             </div>
           </div>
           <div id="boss-ui">
             <div id="boss-name-txt">BOSS APPEARED</div>
-            <div class="bar-bg"><div id="boss-hp-bar" class="bar-fg" style="background: linear-gradient(90deg, #600, #ff1a1a, #ff5555); width: 100%;"></div><div id="boss-hp-text" class="bar-text">--</div></div>
+            <div class="bar-bg"><div id="boss-hp-bar" class="bar-fg" style="background:#a83a2a; width: 100%;"></div><div id="boss-hp-text" class="bar-text">--</div></div>
           </div>
           <div class="side-btns ui-interactive">
-            <div class="icon-btn" onclick="Game.openMenu('dev');" id="devBtn" style="display: none; color: #f0f; border-color: #f0f; font-weight: 900;">{}</div>
-            <div class="icon-btn" onclick="Game.openMenu('gear');">🎒</div>
-            <div class="icon-btn" onclick="Game.openQuestsUI()">📋</div>
-            <div class="icon-btn" onclick="Game.openMenu('system');">⚙️</div>
+            <div class="icon-btn" onclick="Game.openMenu('dev');" id="devBtn" style="display: none; color: #c84040; border-color: #c84040; font-weight: 900;">{}</div>
+            <div class="icon-btn" onclick="Game.openMenu('gear');" title="Inventory">INV</div>
+            <div class="icon-btn" onclick="Game.openQuestsUI()" title="Bounty Board">QST</div>
+            <div class="icon-btn" onclick="Game.openMenu('system');" title="System">SYS</div>
           </div>
           <div id="interact-prompt">PRESS TO INTERACT</div>
           <div id="mobile-controls" class="ui-interactive">
@@ -305,8 +331,8 @@
                     <div class="rpg-tab active" id="tab-btn-gear" onclick="Game.switchTab('gear')"><div class="rpg-tab-text">Gear</div></div>
                     <div class="rpg-tab" id="tab-btn-classes" onclick="Game.switchTab('classes')"><div class="rpg-tab-text">Skills</div></div>
                     <div class="rpg-tab" id="tab-btn-shrine" onclick="Game.switchTab('shrine')"><div class="rpg-tab-text">Shrine</div></div>
-                    <div class="rpg-tab" id="tab-btn-system" onclick="Game.switchTab('system')"><div class="rpg-tab-text" style="font-size: 24px; transform: rotate(0deg);">⚙️</div></div>
-                    <div class="rpg-tab hidden" id="tab-btn-dev" onclick="Game.switchTab('dev')"><div class="rpg-tab-text" style="color: #f0f;">Dev</div></div>
+                    <div class="rpg-tab" id="tab-btn-system" onclick="Game.switchTab('system')"><div class="rpg-tab-text">System</div></div>
+                    <div class="rpg-tab hidden" id="tab-btn-dev" onclick="Game.switchTab('dev')"><div class="rpg-tab-text" style="color: #c84040;">Dev</div></div>
                 </div>
                 <button class="rpg-close-btn-abs" onclick="UI.close()">X</button>
                 <div class="rpg-content">
@@ -322,73 +348,73 @@
                                 <div id="pd-acc1" class="rpg-slot b-EMPTY" onclick="Game.selectEquip('acc1')"></div>
                                 <div id="pd-acc2" class="rpg-slot b-EMPTY" onclick="Game.selectEquip('acc2')"></div>
                             </div>
-                            <div id="gear-stats" style="font-size: 11px; color: #aaa; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;"></div>
+                            <div id="gear-stats" style="font-size: 11px; color: #8a7f68; margin-bottom: 10px; border-bottom: 1px solid #4a4133; padding-bottom: 5px;"></div>
                             <div id="gear-abilities" class="gear-abilities"></div>
                         </div>
                         <div class="gear-right">
                             <div class="grid-header">
                                 <input type="text" id="inv-search" class="grid-search" placeholder="Search..." onkeyup="Game.renderInv()">
-                                <select id="inv-sort" class="grid-search" style="width: 130px; border: none; background: transparent; font-size: 14px; color: #fd0;" onchange="Game.sortInventory()">
+                                <select id="inv-sort" class="grid-search" style="width: 130px; border: none; background: transparent; font-size: 14px; color: #c9941a;" onchange="Game.sortInventory()">
                                     <option value="rarity" style="color: #222;">Sort: Rarity</option>
                                     <option value="level" style="color: #222;">Sort: Level</option>
                                     <option value="name" style="color: #222;">Sort: Name</option>
                                 </select>
-                                <span id="inv-gold-hud" style="color: #f59e0b; font-weight: bold; font-size: 16px;">💰 0</span>
+                                <span id="inv-gold-hud" style="color: #c9941a; font-weight: bold; font-size: 16px;">0 G</span>
                             </div>
                             <div id="inv-grid" class="item-grid-new rpg-scroll"></div>
                             <div id="inv-details" class="details-pane">
-                                <div style="color: #777; font-style: italic; width: 100%; text-align: center;">Select an item...</div>
+                                <div style="color: #5a5245; font-style: italic; width: 100%; text-align: center;">Select an item...</div>
                             </div>
                         </div>
                     </div>
                     <div id="tab-classes" class="tab-pane hidden" style="flex-direction: row;">
-                        <div style="flex: 1; background: #3a3a3a; border-radius: 8px; border: 2px solid #222; display: flex; flex-direction: column; overflow: hidden;">
-                            <div style="background: #2b2b2b; padding: 12px; font-weight: bold; border-bottom: 2px solid #222;">Available Classes</div>
+                        <div style="flex: 1; background: #1e1a15; border: 2px solid #100d09; display: flex; flex-direction: column; overflow: hidden;">
+                            <div style="background: #262119; padding: 12px; font-weight: bold; border-bottom: 2px solid #100d09;">Available Classes</div>
                             <div id="classes-list" class="rpg-scroll" style="flex: 1; padding: 15px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start;"></div>
                         </div>
-                        <div id="classes-details" class="rpg-scroll" style="flex: 0 0 350px; background: #3a3a3a; border-radius: 8px; border: 2px solid #222; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;"></div>
+                        <div id="classes-details" class="rpg-scroll" style="flex: 0 0 350px; background: #1e1a15; border: 2px solid #100d09; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;"></div>
                     </div>
                     <div id="tab-shrine" class="tab-pane hidden" style="flex-direction: row; gap: 20px;">
-                        <div style="flex: 1; background: #3a3a3a; border-radius: 8px; border: 2px solid #222; padding: 25px; display: flex; flex-direction: column;">
-                            <div style="font-size: 24px; font-weight: bold; color: #a855f7; margin-bottom: 10px;">The Void Calls</div>
-                            <p style="color: #ccc; font-size: 15px; margin-bottom: 20px;">Offer Boss Souls to summon ancient class knowledge or manifest legendary loot.</p>
-                            <div style="color: #888; font-weight: bold; font-size: 13px; text-transform: uppercase; margin-bottom: 12px;">Available Pool</div>
+                        <div style="flex: 1; background: #1e1a15; border: 2px solid #100d09; padding: 25px; display: flex; flex-direction: column;">
+                            <div style="font-size: 24px; font-weight: bold; color: #8a5a9a; margin-bottom: 10px;">The Void Calls</div>
+                            <p style="color: #8a7f68; font-size: 15px; margin-bottom: 20px;">Offer Boss Souls to summon ancient class knowledge or manifest legendary loot.</p>
+                            <div style="color: #5a5245; font-weight: bold; font-size: 13px; text-transform: uppercase; margin-bottom: 12px;">Available Pool</div>
                             <div id="shrine-pool" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;"></div>
-                            <div id="shrine-odds" style="margin-top: auto; background: #2b2b2b; border-radius: 6px; padding: 15px; font-size: 14px; color: #aaa; border: 1px solid #444;"></div>
+                            <div id="shrine-odds" style="margin-top: auto; background: #262119; padding: 15px; font-size: 14px; color: #8a7f68; border: 1px solid #4a4133;"></div>
                         </div>
-                        <div style="flex: 0 0 400px; background: radial-gradient(circle, #3a224a 0%, #2a2a2a 70%); border-radius: 8px; border: 2px solid #222; padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 25px;">
+                        <div style="flex: 0 0 400px; background: #1a0e12; border: 2px solid; border-color: #7a3430 #2a0a08 #2a0a08 #7a3430; padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 25px;">
                             <div style="text-align: center;">
-                                <div style="color: #888; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Tribute Balance</div>
-                                <div id="shrine-souls" style="font-size: 36px; font-weight: 900; color: #f59e0b;">0 Souls</div>
+                                <div style="color: #8a7f68; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Tribute Balance</div>
+                                <div id="shrine-souls" style="font-size: 36px; font-weight: 900; color: #c9941a;">0 Souls</div>
                             </div>
-                            <div id="shrine-result" style="width: 100%; height: 160px; background: #222; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 15px;">
-                                <div style="color: #555; font-weight: bold; letter-spacing: 2px; font-size: 18px;">AWAITING TRIBUTE</div>
+                            <div id="shrine-result" style="width: 100%; height: 160px; background: #100d09; border: 2px solid #4a4133; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 15px;">
+                                <div style="color: #5a5245; font-weight: bold; letter-spacing: 2px; font-size: 18px;">AWAITING TRIBUTE</div>
                             </div>
-                            <button id="shrine-btn" class="ui-btn" style="width: 100%; padding: 20px; font-size: 18px; background: #a855f7; border-color: #d8b4fe; color: #fff;" onclick="Game.rollSpin()">OFFER 1 BOSS SOUL</button>
+                            <button id="shrine-btn" class="ui-btn" style="width: 100%; padding: 18px; font-size: 16px; background: #3a2040; border-color: #7a4a8a #1a0820 #1a0820 #7a4a8a; color: #d8b4fe;" onclick="Game.rollSpin()">OFFER 1 BOSS SOUL</button>
                         </div>
                     </div>
                     <div id="tab-system" class="tab-pane hidden" style="flex-direction: row; gap: 20px;">
-                        <div style="flex: 1; background: #3a3a3a; padding: 25px; border-radius: 8px; border: 2px solid #222;">
-                            <div style="font-size: 20px; font-weight: bold; color: #eee; margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px;">GAME SETTINGS</div>
+                        <div style="flex: 1; background: #1e1a15; padding: 25px; border: 2px solid #100d09;">
+                            <div style="font-size: 20px; font-weight: bold; color: #c8bfa8; margin-bottom: 20px; border-bottom: 2px solid #4a4133; padding-bottom: 10px;">GAME SETTINGS</div>
                             <div style="display: flex; flex-direction: column; gap: 15px;">
-                                <div style="display: flex; justify-content: space-between; font-size: 14px; color: #ddd; font-weight: bold;">VOLUME <span id="vol-text" style="color: #3b82f6">0.5</span></div>
+                                <div style="display: flex; justify-content: space-between; font-size: 14px; color: #c8bfa8; font-weight: bold;">VOLUME <span id="vol-text" style="color: #6a9ad8">0.5</span></div>
                                 <input type="range" id="volRange" min="0" max="1" step="0.1" value="0.5" oninput="Game.updateSettings()" style="width: 100%;">
-                                <label style="display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #ddd; font-weight: bold; cursor: pointer; background: #222; padding: 12px 16px; border-radius: 6px;">Screen Shake <input type="checkbox" id="shakeCheck" checked onchange="Game.updateSettings()" style="transform: scale(1.5);"></label>
-                                <label style="display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #ddd; font-weight: bold; cursor: pointer; background: #222; padding: 12px 16px; border-radius: 6px;">Particle Effects <input type="checkbox" id="partCheck" checked onchange="Game.updateSettings()" style="transform: scale(1.5);"></label>
-                                <label style="display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #ddd; font-weight: bold; cursor: pointer; background: #222; padding: 12px 16px; border-radius: 6px;">Damage Numbers <input type="checkbox" id="dmgNumCheck" checked onchange="Game.updateSettings()" style="transform: scale(1.5);"></label>
+                                <label style="display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #c8bfa8; font-weight: bold; cursor: pointer; background: #100d09; padding: 12px 16px; border: 1px solid #4a4133;">Screen Shake <input type="checkbox" id="shakeCheck" checked onchange="Game.updateSettings()" style="transform: scale(1.5);"></label>
+                                <label style="display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #c8bfa8; font-weight: bold; cursor: pointer; background: #100d09; padding: 12px 16px; border: 1px solid #4a4133;">Particle Effects <input type="checkbox" id="partCheck" checked onchange="Game.updateSettings()" style="transform: scale(1.5);"></label>
+                                <label style="display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #c8bfa8; font-weight: bold; cursor: pointer; background: #100d09; padding: 12px 16px; border: 1px solid #4a4133;">Damage Numbers <input type="checkbox" id="dmgNumCheck" checked onchange="Game.updateSettings()" style="transform: scale(1.5);"></label>
                             </div>
-                            <div style="height: 2px; background: #444; width: 100%; margin: 25px 0;"></div>
+                            <div style="height: 2px; background: #4a4133; width: 100%; margin: 25px 0;"></div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                                 <button class="ui-btn ui-btn-primary" style="padding: 12px;" onclick="Game.saveGame(true)">SAVE GAME</button>
                                 <button class="ui-btn" style="padding: 12px;" onclick="Game.loadGame(true)">LOAD GAME</button>
                                 <button class="ui-btn ui-btn-danger" style="grid-column: span 2; padding: 15px; font-size: 15px;" onclick="Game.hardReset()">! DELETE SAVE DATA !</button>
                             </div>
                             <button class="ui-btn" style="margin-top: 30px; padding: 18px; width: 100%; font-size: 16px;" onclick="App.exitToTerminal()">EXIT TO TERMINAL</button>
-                            <button class="ui-btn" style="margin-top: 10px; padding: 12px; width: 100%; font-size: 13px; color: #f55; border-color: #a33;" onclick="SCPBlueScreen('Manual Containment Test', 'Manual bluescreen triggered from System tab.');">⚠ TRIGGER TEST BLUESCREEN</button>
+                            <button class="ui-btn" style="margin-top: 10px; padding: 12px; width: 100%; font-size: 13px; color: #c84040; border-color: #7a2020;" onclick="SCPBlueScreen('Manual Containment Test', 'Manual bluescreen triggered from System tab.');">TRIGGER TEST BLUESCREEN</button>
                         </div>
-                        <div style="flex: 1; background: #3a3a3a; padding: 25px; border-radius: 8px; border: 2px solid #222;" class="rpg-scroll">
-                            <div style="font-size: 20px; font-weight: bold; color: #eee; margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px;">CONTROLS &amp; KEYBINDS</div>
-                            <div style="font-size: 13px; color: #aaa; margin-bottom: 20px; font-style: italic;">Click a button then press a new key to rebind. Press ESC to cancel.</div>
+                        <div style="flex: 1; background: #1e1a15; padding: 25px; border: 2px solid #100d09;" class="rpg-scroll">
+                            <div style="font-size: 20px; font-weight: bold; color: #c8bfa8; margin-bottom: 20px; border-bottom: 2px solid #4a4133; padding-bottom: 10px;">CONTROLS &amp; KEYBINDS</div>
+                            <div style="font-size: 13px; color: #8a7f68; margin-bottom: 20px; font-style: italic;">Click a button then press a new key to rebind. Press ESC to cancel.</div>
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <div class="keybind-row"><span>Move Up</span><button class="keybind-btn" id="kb-up" onclick="Game.startRebind('up', this)"></button></div>
                                 <div class="keybind-row"><span>Move Down</span><button class="keybind-btn" id="kb-down" onclick="Game.startRebind('down', this)"></button></div>
@@ -404,21 +430,21 @@
                         </div>
                     </div>
                     <div id="tab-dev" class="tab-pane hidden rpg-scroll" style="overflow-y: auto; padding-right: 10px;">
-                         <div style="font-size: 18px; font-weight: 900; color: #f0f; margin-bottom: 6px;">⚠ TESTER OVERRIDE — <span id="dev-user-label"></span></div>
-                         <div style="font-size: 11px; color: #777; font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f;">TEST MODE: Actions here bypass normal progression.</div>
+                         <div style="font-size: 18px; font-weight: 900; color: #c84040; margin-bottom: 6px;">!! TESTER OVERRIDE — <span id="dev-user-label"></span></div>
+                         <div style="font-size: 11px; color: #5a5245; font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #c84040;">TEST MODE: Actions here bypass normal progression.</div>
                          <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
                              <div class="dev-group-new" style="flex: 1; min-width: 280px;">
-                                 <div style="color: #888; font-weight: 900; margin-bottom: 10px; font-size: 11px;">PLAYER STATE</div>
+                                 <div style="color: #8a7f68; font-weight: 900; margin-bottom: 10px; font-size: 11px;">PLAYER STATE</div>
                                  <div style="display: flex; gap: 8px; margin-bottom: 8px;"><input type="number" id="dev_gp" class="grid-search" value="10000" style="width: 100px;"><button class="ui-btn ui-btn-primary" style="flex: 1;" onclick="DevMenu.addGold()">+ GOLD</button></div>
                                  <div style="display: flex; gap: 8px; margin-bottom: 8px;"><input type="number" id="dev_xp" class="grid-search" value="500" style="width: 100px;"><button class="ui-btn ui-btn-primary" style="flex: 1;" onclick="DevMenu.addXP()">+ XP</button></div>
-                                 <div style="display: flex; gap: 8px;"><button class="ui-btn" style="flex: 1; color: #f0f; border-color: #f0f;" onclick="DevMenu.lvlUp()">LVL UP</button><button class="ui-btn" style="flex: 1;" onclick="DevMenu.heal()">HEAL MAX</button></div>
+                                 <div style="display: flex; gap: 8px;"><button class="ui-btn" style="flex: 1; color: #c84040; border-color: #c84040;" onclick="DevMenu.lvlUp()">LVL UP</button><button class="ui-btn" style="flex: 1;" onclick="DevMenu.heal()">HEAL MAX</button></div>
                              </div>
                              <div class="dev-group-new" style="flex: 1; min-width: 280px;">
-                                 <div style="color: #888; font-weight: 900; margin-bottom: 10px; font-size: 11px;">CLASS TOOL</div>
+                                 <div style="color: #8a7f68; font-weight: 900; margin-bottom: 10px; font-size: 11px;">CLASS TOOL</div>
                                  <select id="dev_class" class="grid-search" style="width: 100%; margin-bottom: 8px; padding: 8px;"></select>
                                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
-                                     <button class="ui-btn" style="color: #f0f; border-color: #f0f; font-size: 11px;" onclick="DevMenu.grantClass()">UNLOCK</button>
-                                     <button class="ui-btn" style="color: #f59e0b; border-color: #f59e0b; font-size: 11px;" onclick="DevMenu.unlockAndSet()">UNLOCK + EQUIP</button>
+                                     <button class="ui-btn" style="color: #c84040; border-color: #c84040; font-size: 11px;" onclick="DevMenu.grantClass()">UNLOCK</button>
+                                     <button class="ui-btn" style="color: #c9941a; border-color: #c9941a; font-size: 11px;" onclick="DevMenu.unlockAndSet()">UNLOCK + EQUIP</button>
                                  </div>
                                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
                                      <button class="ui-btn ui-btn-primary" style="font-size: 11px;" onclick="DevMenu.grantAllClasses()">GRANT ALL</button>
@@ -426,7 +452,7 @@
                                  </div>
                              </div>
                              <div class="dev-group-new" style="flex: 1; min-width: 280px;">
-                                 <div style="color: #888; font-weight: 900; margin-bottom: 10px; font-size: 11px;">ITEM SPAWNER</div>
+                                 <div style="color: #8a7f68; font-weight: 900; margin-bottom: 10px; font-size: 11px;">ITEM SPAWNER</div>
                                  <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                                      <input type="number" id="dev_lvl" class="grid-search" value="10" style="width: 80px;">
                                      <select id="dev_rare" class="grid-search" style="flex: 1;">
@@ -440,12 +466,12 @@
                                      <button class="ui-btn" onclick="DevMenu.spawnGear('gloves')">GLOVES</button>
                                      <button class="ui-btn" onclick="DevMenu.spawnGear('boots')">BOOTS</button>
                                      <button class="ui-btn" onclick="DevMenu.spawnGear('accessory')">ACCESSORY</button>
-                                     <button class="ui-btn" style="grid-column: span 2; color: #f59e0b; border-color: #f59e0b;" onclick="DevMenu.spawnBossCore()">◆ SPAWN BOSS LOOT</button>
+                                     <button class="ui-btn" style="grid-column: span 2; color: #c9941a; border-color: #c9941a;" onclick="DevMenu.spawnBossCore()">SPAWN BOSS LOOT</button>
                                  </div>
                              </div>
                          </div>
                          <div class="dev-group-new">
-                            <div style="color: #888; font-weight: 900; margin-bottom: 10px; font-size: 11px;">ENVIRONMENT &amp; STATE</div>
+                            <div style="color: #8a7f68; font-weight: 900; margin-bottom: 10px; font-size: 11px;">ENVIRONMENT &amp; STATE</div>
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                 <button class="ui-btn" onclick="DevMenu.spin()">+1 BOSS SOUL</button>
                                 <button class="ui-btn ui-btn-danger" onclick="DevMenu.purgeInv()">PURGE INVENTORY</button>
@@ -459,31 +485,31 @@
         </div>
 
         <div id="shop-modal" class="modal-overlay hidden">
-          <div class="modal-window" style="max-width: 900px; background: #2a2a2a; border-color: #444;">
-             <div class="modal-header" style="color: #fff;">MERCHANT'S WAGON <button class="ui-btn" onclick="UI.close()">[ LEAVE ]</button></div>
-             <p style="font-size: 13px; color: #aaa; font-style: italic; margin-bottom: 20px;">Buy and sell items here. Stock refreshes every restock.</p>
+          <div class="modal-window" style="max-width: 900px; background: #1e1a15; border-color: #4a4133;">
+             <div class="modal-header" style="color: #c9941a;">MERCHANT'S WAGON <button class="ui-btn" onclick="UI.close()">[ LEAVE ]</button></div>
+             <p style="font-size: 13px; color: #8a7f68; font-style: italic; margin-bottom: 20px;">Buy and sell items here. Stock refreshes every restock.</p>
              <div style="display: flex; gap: 20px; min-height: 350px; flex-wrap: wrap;">
                 <div style="flex: 1 1 45%; min-width: 280px;">
-                  <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #4ade80; display: flex; justify-content: space-between; align-items: center;">BUY ITEMS <button class="ui-btn" style="font-size: 11px; padding: 4px 10px;" onclick="Game.rerollShop()">⟳ RESTOCK (200G)</button></div>
-                  <div class="item-grid-new" id="shop-grid" style="display: grid; grid-template-columns: repeat(5, 54px); gap: 8px; min-height: 170px;"></div>
-                  <div id="shop-details" style="margin-top: 20px; background: #222; padding: 15px; border-radius: 8px; min-height: 120px;"></div>
+                  <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #7ab87a; display: flex; justify-content: space-between; align-items: center;">BUY ITEMS <button class="ui-btn" style="font-size: 11px; padding: 4px 10px;" onclick="Game.rerollShop()">RESTOCK (200G)</button></div>
+                  <div class="item-grid-new" id="shop-grid" style="display: grid; grid-template-columns: repeat(5, 56px); gap: 8px; min-height: 170px;"></div>
+                  <div id="shop-details" style="margin-top: 20px; background: #100d09; border: 2px solid #4a4133; padding: 15px; min-height: 120px;"></div>
                 </div>
                 <div style="flex: 1 1 45%; min-width: 280px;">
-                  <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #f59e0b;">SELL ITEMS <span id="shop-gold" style="font-size: 16px;"></span></div>
-                  <div class="item-grid-new rpg-scroll" id="shop-inv-grid" style="display: grid; grid-template-columns: repeat(5, 54px); gap: 8px; max-height: 170px;"></div>
-                  <div id="shop-sell-details" style="margin-top: 20px; background: #222; padding: 15px; border-radius: 8px; min-height: 120px;"></div>
+                  <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #c9941a;">SELL ITEMS <span id="shop-gold" style="font-size: 16px;"></span></div>
+                  <div class="item-grid-new rpg-scroll" id="shop-inv-grid" style="display: grid; grid-template-columns: repeat(5, 56px); gap: 8px; max-height: 170px;"></div>
+                  <div id="shop-sell-details" style="margin-top: 20px; background: #100d09; border: 2px solid #4a4133; padding: 15px; min-height: 120px;"></div>
                 </div>
              </div>
           </div>
         </div>
 
         <div id="dungeon-modal" class="modal-overlay hidden">
-          <div class="modal-window" style="max-width: 800px; padding: 0; background: #2a2a2a; border-color: #444;">
-            <div class="modal-header" style="background: #222; padding: 20px; margin: 0; border-bottom: 2px solid #444; color: #fff;">ADVENTURER'S MAP <button class="ui-btn" onclick="UI.close()">[ CLOSE MAP ]</button></div>
-            <div style="padding: 15px 25px; font-size: 12px; background: #1a1a1a; color: #aaa; margin-bottom: 20px;">Warning: Entering a dungeon will pit you against waves of monsters and a powerful boss.</div>
+          <div class="modal-window" style="max-width: 800px; padding: 0; background: #1e1a15; border-color: #4a4133;">
+            <div class="modal-header" style="background: #100d09; padding: 20px; margin: 0; border-bottom: 2px solid #4a4133; color: #c9941a;">ADVENTURER'S MAP <button class="ui-btn" onclick="UI.close()">[ CLOSE MAP ]</button></div>
+            <div style="padding: 15px 25px; font-size: 12px; background: #100d09; color: #8a7f68; margin-bottom: 20px;">Warning: Entering a dungeon will pit you against waves of monsters and a powerful boss.</div>
             <div style="display: flex; gap: 25px; padding: 0 25px 25px 25px; align-items: flex-start; flex-wrap: wrap;">
               <div id="dungeon-list" class="rpg-scroll" style="flex: 1 1 45%; min-width: 250px; max-height: 400px; overflow-y: auto;"></div>
-              <div style="flex: 1 1 45%; min-width: 250px; display: flex; flex-direction: column; min-height: 220px; background: #222; padding: 20px; border-radius: 8px; border: 1px solid #111;">
+              <div style="flex: 1 1 45%; min-width: 250px; display: flex; flex-direction: column; min-height: 220px; background: #100d09; padding: 20px; border: 1px solid #4a4133;">
                 <div id="dungeon-details" style="margin: 0; flex: 1;">Select a destination.</div>
               </div>
             </div>
@@ -491,31 +517,31 @@
         </div>
 
         <div id="quests-modal" class="modal-overlay hidden">
-          <div class="modal-window" style="width: 600px; background: #2a2a2a; border-color: #444;">
-            <div class="modal-header" style="color: #4ade80; border-color: #444;">BOUNTY BOARD <button class="ui-btn" onclick="UI.close()">X</button></div>
-            <p style="font-size: 13px; color: #aaa; margin-bottom: 20px;">Complete bounties for gold and experience.</p>
+          <div class="modal-window" style="width: 600px; background: #1e1a15; border-color: #4a4133;">
+            <div class="modal-header" style="color: #7ab87a; border-color: #4a4133;">BOUNTY BOARD <button class="ui-btn" onclick="UI.close()">X</button></div>
+            <p style="font-size: 13px; color: #8a7f68; margin-bottom: 20px;">Complete bounties for gold and experience.</p>
             <div id="quests-list" class="rpg-scroll" style="display: flex; flex-direction: column; gap: 15px; max-height: 500px; overflow-y: auto;"></div>
           </div>
         </div>
 
-        <div id="death-modal" class="modal-overlay hidden" style="z-index: 9000; background: rgba(20,0,0,0.8);">
-          <div class="modal-window" style="width: 420px; text-align: center; border: 4px solid #ef4444; background: #1a1a1a; padding: 30px;">
-            <div style="font-size: 52px; font-weight: 900; color: #ef4444; letter-spacing: 6px; margin: 25px 0;">YOU DIED</div>
-            <p style="font-size: 15px; color: #ccc; border: 1px dashed #444; padding: 15px; background: #222; border-radius: 4px;">Your party was defeated. You have been returned to the tavern to recover.</p>
-            <div style="height: 1px; background: #444; margin: 25px 0;"></div>
+        <div id="death-modal" class="modal-overlay hidden" style="z-index: 9000; background: rgba(20,0,0,0.85);">
+          <div class="modal-window" style="width: 420px; text-align: center; border: 4px solid #a83a2a; background: #1a0e0e; padding: 30px;">
+            <div style="font-size: 52px; font-weight: 900; color: #c84040; letter-spacing: 6px; margin: 25px 0;">YOU DIED</div>
+            <p style="font-size: 15px; color: #c8bfa8; border: 1px dashed #4a4133; padding: 15px; background: #100d09;">Your party was defeated. You have been returned to the tavern to recover.</p>
+            <div style="height: 1px; background: #4a4133; margin: 25px 0;"></div>
             <button class="ui-btn ui-btn-danger" onclick="Game.returnToTavern()" style="padding: 18px; font-size: 18px; width: 100%;">RETURN TO TAVERN</button>
           </div>
         </div>
 
-        <div id="victory-modal" class="modal-overlay hidden" style="z-index: 8000; background: rgba(0,10,20,0.8);">
-          <div class="modal-window" style="width: 480px; text-align: center; border: 4px solid #f59e0b; background: #1a1a1a; padding: 30px;">
-            <div style="font-size: 32px; font-weight: 900; color: #f59e0b; letter-spacing: 4px; margin-top: 15px;">VICTORY</div>
-            <p style="font-size: 13px; color: #ccc; padding: 0 15px; margin-top: 15px;">The area is cleared! You've claimed the boss's loot.</p>
-            <div style="margin: 25px 15px; background: #222; border: 2px dashed #444; border-radius: 8px; padding: 20px;">
-                <div style="font-size: 13px; color: #aaa; font-weight: bold; border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 12px;">LOOT ACQUIRED:</div>
+        <div id="victory-modal" class="modal-overlay hidden" style="z-index: 8000; background: rgba(20,10,0,0.85);">
+          <div class="modal-window" style="width: 480px; text-align: center; border: 4px solid #c9941a; background: #1a1608; padding: 30px;">
+            <div style="font-size: 32px; font-weight: 900; color: #c9941a; letter-spacing: 4px; margin-top: 15px;">VICTORY</div>
+            <p style="font-size: 13px; color: #c8bfa8; padding: 0 15px; margin-top: 15px;">The area is cleared! You've claimed the boss's loot.</p>
+            <div style="margin: 25px 15px; background: #100d09; border: 2px dashed #4a4133; padding: 20px;">
+                <div style="font-size: 13px; color: #8a7f68; font-weight: bold; border-bottom: 1px solid #4a4133; padding-bottom: 8px; margin-bottom: 12px;">LOOT ACQUIRED:</div>
                 <div id="victory-rewards" style="font-size: 14px; font-weight: bold; text-align: left; display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
-            <button class="ui-btn" onclick="Game.returnToTavern()" style="padding: 16px; font-size: 16px; width: 100%; border-color: #f59e0b; color: #f59e0b;">RETURN TO TAVERN</button>
+            <button class="ui-btn" onclick="Game.returnToTavern()" style="padding: 16px; font-size: 16px; width: 100%; border-color: #c9941a; color: #c9941a;">RETURN TO TAVERN</button>
           </div>
         </div>
 
@@ -764,7 +790,7 @@ var DevMenu = {
             State.unlockedClasses[cId] = { lvl: 1, xp: 0 };
             n++;
         }
-        if (n > 0) { Game.saveGame(); Game.popText(State.p.x, State.p.y, n + ' CLASS(ES) GRANTED', '#f0f'); Audio.play('pickup'); this.populateDropdown(); if (Game.currentTab === 'classes') Game.renderClassesUI(); Toast.show(n + ' class(es) unlocked', 'success'); }
+        if (n > 0) { Game.saveGame(); Game.popText(State.p.x, State.p.y, n + ' CLASS(ES) GRANTED', '#c84040'); Audio.play('pickup'); this.populateDropdown(); if (Game.currentTab === 'classes') Game.renderClassesUI(); Toast.show(n + ' class(es) unlocked', 'success'); }
         else { Audio.play('error'); Toast.show('No new classes to grant', 'warn'); }
     },
     grantAllClasses: function() { if (!this._guard()) return; if (!confirm('GRANT ALL CLASSES?')) return; this.grantClass(true); },
@@ -800,16 +826,16 @@ var DevMenu = {
         var i = Game.genItem(l, false);
         i.type = (type === 'accessory') ? 'accessory' : type;
         i.rarity = r;
-        if (Game.addItem(i)) { Game.popText(State.p.x, State.p.y, 'ITEM GIVEN', '#f0f'); Audio.play('pickup'); Toast.show('Spawned: ' + i.name, 'success'); }
-        else { Game.popText(State.p.x, State.p.y, 'INV FULL', '#f00'); Audio.play('error'); Toast.show('Inventory Full', 'error'); }
+        if (Game.addItem(i)) { Game.popText(State.p.x, State.p.y, 'ITEM GIVEN', '#c84040'); Audio.play('pickup'); Toast.show('Spawned: ' + i.name, 'success'); }
+        else { Game.popText(State.p.x, State.p.y, 'INV FULL', '#c84040'); Audio.play('error'); Toast.show('Inventory Full', 'error'); }
     },
     spawnBossCore: function() {
         if (!this._guard()) return;
         var i = Game.genItem(State.p.lvl, true);
-        if (Game.addItem(i)) { Game.popText(State.p.x, State.p.y, 'BOSS LOOT GIVEN', '#f0f'); Audio.play('pickup'); Toast.show('Boss Loot: ' + i.name, 'success'); }
-        else { Game.popText(State.p.x, State.p.y, 'INV FULL', '#f00'); Audio.play('error'); Toast.show('Inventory Full', 'error'); }
+        if (Game.addItem(i)) { Game.popText(State.p.x, State.p.y, 'BOSS LOOT GIVEN', '#c84040'); Audio.play('pickup'); Toast.show('Boss Loot: ' + i.name, 'success'); }
+        else { Game.popText(State.p.x, State.p.y, 'INV FULL', '#c84040'); Audio.play('error'); Toast.show('Inventory Full', 'error'); }
     },
-    unlockAllDungs: function() { if (!this._guard()) return; State.dungeons.unlocked = 99; Game.saveGame(); Game.popText(State.p.x, State.p.y, 'DUNGEONS UNLOCKED', '#f0f'); Audio.play('pickup'); Toast.show('All Dungeons Unlocked', 'success'); },
+    unlockAllDungs: function() { if (!this._guard()) return; State.dungeons.unlocked = 99; Game.saveGame(); Game.popText(State.p.x, State.p.y, 'DUNGEONS UNLOCKED', '#c84040'); Audio.play('pickup'); Toast.show('All Dungeons Unlocked', 'success'); },
     nukeAllEnemies: function() {
         if (!this._guard()) return;
         var snapshot = State.entities.slice();
@@ -1357,7 +1383,7 @@ var MathUtils = {
     }
 };
 
-var RARITIES = { COMMON: { c: '#777', m: 1, v: 10 }, UNCOMMON: { c: '#4ade80', m: 1.3, v: 25 }, RARE: { c: '#3b82f6', m: 1.6, v: 60 }, EPIC: { c: '#a855f7', m: 2.2, v: 150 }, LEGENDARY: { c: '#f59e0b', m: 3.5, v: 500 }, MYTHIC: { c: '#ef4444', m: 5.0, v: 1500 } };
+var RARITIES = { COMMON: { c: '#8a8a8a', m: 1, v: 10 }, UNCOMMON: { c: '#7ab87a', m: 1.3, v: 25 }, RARE: { c: '#6a9ad8', m: 1.6, v: 60 }, EPIC: { c: '#aa6ad8', m: 2.2, v: 150 }, LEGENDARY: { c: '#e8b03a', m: 3.5, v: 500 }, MYTHIC: { c: '#e86060', m: 5.0, v: 1500 } };
 var RARITY_ORDER = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
 var ITEM_TYPES = ['weapon', 'helmet', 'chest', 'gloves', 'boots', 'accessory'];
 function getIcon(t) { var m = { weapon: 'W', helmet: 'H', chest: 'C', gloves: 'G', boots: 'B', accessory: 'A', acc1: 'A', acc2: 'A', consumable: 'P' }; return m[t] || '?'; }
@@ -1610,7 +1636,7 @@ var Game = {
             State.p.hp = State.p.maxHp;
             Audio.play('levelup');
             Toast.show('LEVEL UP! You are now level ' + State.p.lvl, 'success');
-            this.popText(State.p.x, State.p.y - 40, 'LEVEL UP!', '#ffd700', 3, 22);
+            this.popText(State.p.x, State.p.y - 40, 'LEVEL UP!', '#c9941a', 3, 22);
         }
     },
 
@@ -1814,7 +1840,7 @@ var Game = {
         this.recalcStats();
         if (State.p.hp > State.p.maxHp) State.p.hp = State.p.maxHp;
         this.updateHUD(); this.saveGame(); this.renderClassesUI();
-        this.popText(State.p.x, State.p.y, 'CLASS CHANGED', '#4ade80');
+        this.popText(State.p.x, State.p.y, 'CLASS CHANGED', '#7ab87a');
         Audio.play('pickup');
     },
     renderClassesUI: function() {
@@ -1827,10 +1853,10 @@ var Game = {
             var lv = State.unlockedClasses[k] ? State.unlockedClasses[k].lvl : 1;
             var rc = RARITIES[c.rarity].c;
             h += '<div class="class-card ' + (u ? '' : 'locked') + ' ' + (cur ? 'active-class' : '') + '" data-class="' + k + '" onclick="Game.showClassDetails(' + Q + k + Q + ')">';
-            if (cur) h += '<div style="position:absolute; top:-9px; right:-9px; background:#f59e0b; color:#111; font-size:9px; font-weight:900; padding:3px 8px; border-radius:10px;">ACTIVE</div>';
+            if (cur) h += '<div style="position:absolute; top:-9px; right:-9px; background:#c9941a; color:#111; font-size:9px; font-weight:900; padding:3px 8px;">ACTIVE</div>';
             h += '<div style="color:' + c.color + '; font-weight:900; font-size:15px; margin-bottom:3px;">' + c.name + '</div>';
             h += '<div style="font-size:10px; color:' + rc + '; margin-bottom:8px; font-weight:900;">[ ' + c.rarity + ' ]' + (u ? ' LV ' + lv : '') + '</div>';
-            h += '<div style="font-size:11px; color:#aaa; display:grid; grid-template-columns:1fr 1fr; gap:4px; border-top:1px dashed #444; padding-top:8px; margin-top:auto;">';
+            h += '<div style="font-size:11px; color:#8a7f68; display:grid; grid-template-columns:1fr 1fr; gap:4px; border-top:1px dashed #4a4133; padding-top:8px; margin-top:auto;">';
             h += '<span>HP ' + c.base.hp + '</span><span>ATK ' + c.base.atk + '</span><span>ARM ' + c.base.arm + '</span><span>SPD ' + c.base.spd + '</span>';
             h += '</div></div>';
         }
@@ -1845,35 +1871,35 @@ var Game = {
         var rc = RARITIES[c.rarity].c;
         var abHTML = '';
         if (c.ab) c.ab.forEach(function(a, i) {
-            abHTML += '<div style="background:#2b2b2b; border:1px solid #3a3a3a; padding:10px 12px; border-radius:6px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">';
-            abHTML += '<div><div style="color:#eee; font-size:13px; font-weight:900;">' + a.n + '</div><div style="color:#777; font-size:10px;">SLOT ' + (i + 1) + '</div></div>';
-            abHTML += '<div style="color:#3b82f6; font-size:12px; font-weight:900;">' + a.cd + 's</div></div>';
+            abHTML += '<div style="background:#262119; border:1px solid #4a4133; padding:10px 12px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">';
+            abHTML += '<div><div style="color:#c8bfa8; font-size:13px; font-weight:900;">' + a.n + '</div><div style="color:#5a5245; font-size:10px;">SLOT ' + (i + 1) + '</div></div>';
+            abHTML += '<div style="color:#6a9ad8; font-size:12px; font-weight:900;">' + a.cd + 's</div></div>';
         });
         var btn = '';
         var inMenu = (!State.p || State.gameState === 'MENU' || State.gameState === 'OFF');
-        if (cur && !inMenu) btn = '<button class="ui-btn" style="width:100%; border-color:#f59e0b; color:#f59e0b;" disabled>EQUIPPED</button>';
+        if (cur && !inMenu) btn = '<button class="ui-btn" style="width:100%; border-color:#c9941a; color:#c9941a;" disabled>EQUIPPED</button>';
         else if (u) btn = '<button class="ui-btn ui-btn-primary" style="width:100%; padding:14px;" onclick="Game.handleClassSelect(' + Q + id + Q + ')">' + (inMenu ? 'START AS CLASS' : 'SWITCH TO CLASS') + '</button>';
         else btn = '<button class="ui-btn" style="width:100%; opacity:0.55;" disabled>LOCKED - SHRINE</button>';
         var det = document.getElementById('classes-details'); if (!det) return;
         var html = '';
         html += '<div style="font-size:24px; font-weight:900; color:' + c.color + '; margin-bottom:4px;">' + c.name + '</div>';
-        html += '<div style="font-size:12px; color:' + rc + '; margin-bottom:15px; border-bottom:2px solid #444; padding-bottom:12px; font-weight:900; letter-spacing:2px;">' + c.rarity + ' CLASS</div>';
-        html += '<p style="font-size:13px; color:#ccc; line-height:1.6; margin-bottom:20px;">' + c.desc + '</p>';
-        html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:20px; background:#2b2b2b; padding:12px; border-radius:6px;">';
-        html += '<div style="font-size:11px; color:#888;">HP <span style="color:#4ade80; float:right;">' + c.base.hp + '</span></div>';
-        html += '<div style="font-size:11px; color:#888;">ATK <span style="color:#ef4444; float:right;">' + c.base.atk + '</span></div>';
-        html += '<div style="font-size:11px; color:#888;">ARM <span style="color:#d1d5db; float:right;">' + c.base.arm + '</span></div>';
-        html += '<div style="font-size:11px; color:#888;">SPD <span style="color:#38bdf8; float:right;">' + c.base.spd + '</span></div>';
+        html += '<div style="font-size:12px; color:' + rc + '; margin-bottom:15px; border-bottom:2px solid #4a4133; padding-bottom:12px; font-weight:900; letter-spacing:2px;">' + c.rarity + ' CLASS</div>';
+        html += '<p style="font-size:13px; color:#c8bfa8; line-height:1.6; margin-bottom:20px;">' + c.desc + '</p>';
+        html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:20px; background:#262119; padding:12px; border:1px solid #4a4133;">';
+        html += '<div style="font-size:11px; color:#8a7f68;">HP <span style="color:#7ab87a; float:right;">' + c.base.hp + '</span></div>';
+        html += '<div style="font-size:11px; color:#8a7f68;">ATK <span style="color:#c84040; float:right;">' + c.base.atk + '</span></div>';
+        html += '<div style="font-size:11px; color:#8a7f68;">ARM <span style="color:#c8bfa8; float:right;">' + c.base.arm + '</span></div>';
+        html += '<div style="font-size:11px; color:#8a7f68;">SPD <span style="color:#6a9ad8; float:right;">' + c.base.spd + '</span></div>';
         html += '</div>';
-        if (u && State.p && !inMenu) html += '<div style="background:#2b2b2b; border-radius:6px; padding:12px; margin-bottom:18px; display:flex; justify-content:space-between;"><div style="font-size:11px; color:#888;">MASTERY</div><div style="font-size:16px; color:#fff; font-weight:900;">Lv. ' + lv + '</div></div>';
-        html += '<div style="font-size:11px; font-weight:900; color:#777; text-transform:uppercase; margin-bottom:10px;">Core Abilities</div>';
-        html += '<div style="margin-bottom:20px;">' + (abHTML || '<div style="color:#666; font-style:italic; font-size:12px;">No abilities.</div>') + '</div>';
+        if (u && State.p && !inMenu) html += '<div style="background:#262119; border:1px solid #4a4133; padding:12px; margin-bottom:18px; display:flex; justify-content:space-between;"><div style="font-size:11px; color:#8a7f68;">MASTERY</div><div style="font-size:16px; color:#c8bfa8; font-weight:900;">Lv. ' + lv + '</div></div>';
+        html += '<div style="font-size:11px; font-weight:900; color:#5a5245; text-transform:uppercase; margin-bottom:10px;">Core Abilities</div>';
+        html += '<div style="margin-bottom:20px;">' + (abHTML || '<div style="color:#5a5245; font-style:italic; font-size:12px;">No abilities.</div>') + '</div>';
         html += '<div style="margin-top:auto;">' + btn + '</div>';
         det.innerHTML = html;
         var cards = document.querySelectorAll('.class-card');
-        for (var i = 0; i < cards.length; i++) cards[i].style.borderColor = '#444';
+        for (var i = 0; i < cards.length; i++) cards[i].style.borderColor = '#4a4133';
         var sel = document.querySelector('.class-card[data-class="' + id + '"]');
-        if (sel) sel.style.borderColor = '#fff';
+        if (sel) sel.style.borderColor = '#c9941a';
     },
 
     returnToTavern: function() {
@@ -1925,7 +1951,7 @@ var Game = {
     },
     useItem: function(idx) {
         var it = State.inv[idx]; if (!it || it.type !== 'consumable') return;
-        if (it.stats && it.stats.heal) { State.p.hp = Math.min(State.p.maxHp, State.p.hp + it.stats.heal); this.popText(State.p.x, State.p.y, '+' + it.stats.heal + ' HP', '#4ade80'); Audio.play('pickup'); }
+        if (it.stats && it.stats.heal) { State.p.hp = Math.min(State.p.maxHp, State.p.hp + it.stats.heal); this.popText(State.p.x, State.p.y, '+' + it.stats.heal + ' HP', '#7ab87a'); Audio.play('pickup'); }
         it.stack = (it.stack || 1) - 1;
         if (it.stack <= 0) { this.removeItem(idx); this.selectedInvIndex = -1; this.showItemDetails(-1); }
         else this.showItemDetails(idx, false);
@@ -1955,7 +1981,7 @@ var Game = {
         if (!State.equip[slot]) return;
         if (State.inv.length >= 42) {
             var d = document.getElementById('inv-details');
-            if (d) d.innerHTML = '<div style="color:#ef4444; width:100%; text-align:center; margin:auto; font-weight:bold;">Inventory Full!</div>';
+            if (d) d.innerHTML = '<div style="color:#c84040; width:100%; text-align:center; margin:auto; font-weight:bold;">Inventory Full!</div>';
             Audio.play('error'); Toast.show('Inventory Full - Cannot Unequip', 'error'); return;
         }
         var nIdx = State.inv.length;
@@ -2002,14 +2028,14 @@ var Game = {
         var sEl = document.getElementById('gear-stats');
         if (sEl) {
             var html = '';
-            html += '<div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span>LVL <span style="color:#fff; font-weight:bold;">' + p.lvl + '</span></span><span style="color:' + cDef.color + '; font-weight:bold; font-size:11px;">' + cDef.name.substring(0, 14) + '</span></div>';
+            html += '<div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span>LVL <span style="color:#c8bfa8; font-weight:bold;">' + p.lvl + '</span></span><span style="color:' + cDef.color + '; font-weight:bold; font-size:11px;">' + cDef.name.substring(0, 14) + '</span></div>';
             html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; font-size:11px;">';
-            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#888;">HP</span><span style="color:#4ade80;">' + Math.floor(p.hp) + '/' + p.maxHp + '</span></div>';
-            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#888;">ATK</span><span style="color:#ef4444;">' + p.atk + '</span></div>';
-            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#888;">ARM</span><span style="color:#d1d5db;">' + p.arm + '</span></div>';
-            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#888;">SPD</span><span style="color:#38bdf8;">' + p.spd + '</span></div>';
-            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#888;">CRIT</span><span style="color:#f59e0b;">' + p.crit + '%</span></div>';
-            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#888;">VAMP</span><span style="color:#a855f7;">' + (p.vamp || 0) + '%</span></div>';
+            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#8a7f68;">HP</span><span style="color:#7ab87a;">' + Math.floor(p.hp) + '/' + p.maxHp + '</span></div>';
+            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#8a7f68;">ATK</span><span style="color:#c84040;">' + p.atk + '</span></div>';
+            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#8a7f68;">ARM</span><span style="color:#c8bfa8;">' + p.arm + '</span></div>';
+            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#8a7f68;">SPD</span><span style="color:#6a9ad8;">' + p.spd + '</span></div>';
+            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#8a7f68;">CRIT</span><span style="color:#c9941a;">' + p.crit + '%</span></div>';
+            html += '<div style="display:flex; justify-content:space-between;"><span style="color:#8a7f68;">VAMP</span><span style="color:#8a5a9a;">' + (p.vamp || 0) + '%</span></div>';
             html += '</div>';
             sEl.innerHTML = html;
         }
@@ -2021,7 +2047,7 @@ var Game = {
             if (abs[i] && abs[i].n) {
                 var shortName = String(abs[i].n).substring(0, 2).toUpperCase();
                 var cls2 = (i === 0 ? 'ab-1' : (i === 1 ? 'ab-2' : ''));
-                abH += '<div class="ability-slot ' + cls2 + '" title="' + abs[i].n + ' (' + abs[i].cd + 's)"><span class="keybind">' + bn[i] + '</span><span style="font-size:13px; font-weight:900; color:#fff;">' + shortName + '</span></div>';
+                abH += '<div class="ability-slot ' + cls2 + '" title="' + abs[i].n + ' (' + abs[i].cd + 's)"><span class="keybind">' + bn[i] + '</span><span style="font-size:13px; font-weight:900; color:#c8bfa8;">' + shortName + '</span></div>';
             } else {
                 abH += '<div class="ability-slot b-EMPTY"><span class="keybind">' + bn[i] + '</span></div>';
             }
@@ -2029,7 +2055,7 @@ var Game = {
         var abEl = document.getElementById('gear-abilities');
         if (abEl) abEl.innerHTML = abH;
         var gEl = document.getElementById('inv-gold-hud');
-        if (gEl) gEl.innerText = '💰 ' + p.gold;
+        if (gEl) gEl.innerText = p.gold + ' G';
         var searchEl = document.getElementById('inv-search');
         var search = (searchEl ? searchEl.value : '').toLowerCase();
         var gridEl = document.getElementById('inv-grid');
@@ -2068,13 +2094,13 @@ var Game = {
     showItemDetails: function(idxOrSlot, isEquip) {
         var c = document.getElementById('inv-details'); if (!c) return;
         var it = isEquip ? State.equip[idxOrSlot] : State.inv[idxOrSlot];
-        if (!it) { c.innerHTML = '<div style="color:#777; font-style:italic; width:100%; text-align:center;">Select an item...</div>'; return; }
+        if (!it) { c.innerHTML = '<div style="color:#5a5245; font-style:italic; width:100%; text-align:center;">Select an item...</div>'; return; }
         var slot = it.type;
         if (slot === 'accessory') slot = isEquip ? idxOrSlot : (State.equip.acc1 ? 'acc2' : 'acc1');
         var eq = isEquip ? null : State.equip[slot];
         var statH = '';
         if (it.type === 'consumable') {
-            statH = '<div style="color:#4ade80; padding:8px; font-weight:bold; font-size:12px; text-align:center;">Restores ' + (it.stats ? it.stats.heal : 0) + ' HP</div>';
+            statH = '<div style="color:#7ab87a; padding:8px; font-weight:bold; font-size:12px; text-align:center;">Restores ' + (it.stats ? it.stats.heal : 0) + ' HP</div>';
         } else {
             var labels = { hp: 'Max HP', atk: 'Attack', arm: 'Armor', spd: 'Speed', crit: 'Crit %', vamp: 'Vamp %', str: 'Strength', int: 'Int', vit: 'Vit', def: 'Def', agi: 'Agi', luk: 'Luck' };
             var rows = '';
@@ -2083,11 +2109,11 @@ var Game = {
                 var oV = (eq && eq.stats && eq.stats[s]) || 0;
                 if (nV === 0 && oV === 0) continue;
                 var dd = nV - oV;
-                var dc = dd > 0 ? '#4ade80' : (dd < 0 ? '#ef4444' : '#666');
+                var dc = dd > 0 ? '#7ab87a' : (dd < 0 ? '#c84040' : '#5a5245');
                 var ds = (dd !== 0 && !isEquip) ? '<span style="color:' + dc + '; font-weight:bold;"> (' + (dd > 0 ? '+' : '') + dd + ')</span>' : '';
-                rows += '<div style="display:flex; justify-content:space-between; padding:3px 0; font-size:11px; border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:#999;">' + labels[s] + '</span><span style="color:#fff; font-weight:bold;">' + nV + ds + '</span></div>';
+                rows += '<div style="display:flex; justify-content:space-between; padding:3px 0; font-size:11px; border-bottom:1px solid rgba(200,191,168,0.08);"><span style="color:#8a7f68;">' + labels[s] + '</span><span style="color:#c8bfa8; font-weight:bold;">' + nV + ds + '</span></div>';
             }
-            statH = rows || '<div style="color:#666; font-style:italic; font-size:11px; text-align:center;">No stats</div>';
+            statH = rows || '<div style="color:#5a5245; font-style:italic; font-size:11px; text-align:center;">No stats</div>';
         }
         var btns = '';
         if (isEquip) btns = '<button class="ui-btn ui-btn-danger" style="width:100%;" onclick="Game.unequipItem(' + Q + idxOrSlot + Q + ')">UNEQUIP</button>';
@@ -2096,9 +2122,9 @@ var Game = {
         var rc = RARITIES[it.rarity].c;
         var html = '';
         html += '<div class="rpg-slot b-' + it.rarity + '" style="width:72px; height:72px; flex-shrink:0;"><span class="slot-icon" style="font-size:34px;">' + getIcon(it.type) + '</span></div>';
-        html += '<div style="display:flex; flex-direction:column; flex:1; min-width:0; padding:0 12px; border-right:1px solid #333;">';
+        html += '<div style="display:flex; flex-direction:column; flex:1; min-width:0; padding:0 12px; border-right:1px solid #4a4133;">';
         html += '<div style="font-size:16px; font-weight:900; color:' + rc + '; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px;">' + it.name + '</div>';
-        html += '<div style="font-size:11px; color:#888; font-weight:bold; margin-bottom:8px;">Lv.' + (it.lvl || 1) + ' | ' + it.type.toUpperCase() + ' | <span style="color:' + rc + ';">' + it.rarity + '</span>' + (isEquip ? ' <span style="color:#f59e0b;">(EQ)</span>' : '') + '</div>';
+        html += '<div style="font-size:11px; color:#8a7f68; font-weight:bold; margin-bottom:8px;">Lv.' + (it.lvl || 1) + ' | ' + it.type.toUpperCase() + ' | <span style="color:' + rc + ';">' + it.rarity + '</span>' + (isEquip ? ' <span style="color:#c9941a;">(EQ)</span>' : '') + '</div>';
         html += '<div class="rpg-scroll" style="flex:1; overflow-y:auto; padding-right:4px;">' + statH + '</div>';
         html += '</div>';
         html += '<div style="display:flex; flex-direction:column; gap:6px; width:130px; flex-shrink:0; justify-content:center;">' + btns + '</div>';
@@ -2112,14 +2138,14 @@ var Game = {
         for (var k in CLASSES) {
             var c = CLASSES[k];
             var u = (k === 'tank' || k === 'fighter' || k === 'ranger' || State.unlockedClasses[k]);
-            if (u) pool += '<span style="font-size:11px; padding:4px 8px; background:#1c1c1c; border:1px solid #2a2a2a; color:#555; border-radius:4px; text-decoration:line-through; font-weight:bold;">' + c.name + '</span>';
-            else { locked++; pool += '<span style="font-size:11px; padding:4px 8px; background:rgba(0,0,0,0.45); border:1px solid ' + RARITIES[c.rarity].c + '; color:' + c.color + '; border-radius:4px; font-weight:900;">' + c.name + '</span>'; }
+            if (u) pool += '<span style="font-size:11px; padding:4px 8px; background:#262119; border:1px solid #4a4133; color:#5a5245; text-decoration:line-through; font-weight:bold;">' + c.name + '</span>';
+            else { locked++; pool += '<span style="font-size:11px; padding:4px 8px; background:rgba(0,0,0,0.45); border:1px solid ' + RARITIES[c.rarity].c + '; color:' + c.color + '; font-weight:900;">' + c.name + '</span>'; }
         }
-        var pEl = document.getElementById('shrine-pool'); if (pEl) pEl.innerHTML = pool || '<span style="color:#555; font-style:italic; font-size:12px;">All classes unlocked.</span>';
+        var pEl = document.getElementById('shrine-pool'); if (pEl) pEl.innerHTML = pool || '<span style="color:#5a5245; font-style:italic; font-size:12px;">All classes unlocked.</span>';
         var oEl = document.getElementById('shrine-odds');
         if (oEl) {
-            if (locked > 0) oEl.innerHTML = '<strong style="color:#ccc;">TRIBUTE ODDS:</strong><br><br><div style="display:flex; justify-content:space-between; padding:3px 0;"><span style="color:#a855f7;">Manifest a Class</span><span style="color:#a855f7; font-weight:bold;">35%</span></div><div style="display:flex; justify-content:space-between; padding:3px 0;"><span style="color:#f59e0b;">Mythic Boss Loot</span><span style="color:#f59e0b; font-weight:bold;">65%</span></div>';
-            else oEl.innerHTML = '<strong style="color:#ccc;">TRIBUTE ODDS:</strong><br><br><div style="color:#888; font-size:12px;">All classes unlocked - every tribute yields loot.</div><div style="display:flex; justify-content:space-between; padding:3px 0; margin-top:6px;"><span style="color:#f59e0b;">Mythic Loot</span><span style="color:#f59e0b; font-weight:bold;">100%</span></div>';
+            if (locked > 0) oEl.innerHTML = '<strong style="color:#c8bfa8;">TRIBUTE ODDS:</strong><br><br><div style="display:flex; justify-content:space-between; padding:3px 0;"><span style="color:#8a5a9a;">Manifest a Class</span><span style="color:#8a5a9a; font-weight:bold;">35%</span></div><div style="display:flex; justify-content:space-between; padding:3px 0;"><span style="color:#c9941a;">Mythic Boss Loot</span><span style="color:#c9941a; font-weight:bold;">65%</span></div>';
+            else oEl.innerHTML = '<strong style="color:#c8bfa8;">TRIBUTE ODDS:</strong><br><br><div style="color:#8a7f68; font-size:12px;">All classes unlocked - every tribute yields loot.</div><div style="display:flex; justify-content:space-between; padding:3px 0; margin-top:6px;"><span style="color:#c9941a;">Mythic Loot</span><span style="color:#c9941a; font-weight:bold;">100%</span></div>';
         }
         var btn = document.getElementById('shrine-btn');
         if (btn) {
@@ -2134,7 +2160,7 @@ var Game = {
         this._shrineRolling = true;
         State.p.spins--;
         var resEl = document.getElementById('shrine-result');
-        if (resEl) resEl.innerHTML = '<div style="color:#a855f7; font-weight:900; letter-spacing:2px; font-size:16px;">COMMUNING...</div>';
+        if (resEl) resEl.innerHTML = '<div style="color:#8a5a9a; font-weight:900; letter-spacing:2px; font-size:16px;">COMMUNING...</div>';
         var lockedC = [];
         for (var k in CLASSES) if (!State.unlockedClasses[k] && ['tank', 'fighter', 'ranger'].indexOf(k) === -1) lockedC.push(k);
         var roll = Math.random();
@@ -2147,15 +2173,15 @@ var Game = {
             if (useClass && cId) {
                 var c = CLASSES[cId];
                 State.unlockedClasses[cId] = { lvl: 1, xp: 0 };
-                resEl.innerHTML = '<div style="font-size:11px; color:#aaa; font-weight:900; letter-spacing:2px; margin-bottom:6px;">NEW CLASS UNLOCKED</div><div style="font-size:22px; font-weight:900; color:' + c.color + '; margin-bottom:10px;">' + c.name + '</div><button class="ui-btn" style="border-color:' + c.color + '; color:' + c.color + '; padding:8px 16px; font-size:12px;" onclick="Game.switchTab(' + Q + 'classes' + Q + ');">VIEW IN CLASSES</button>';
+                resEl.innerHTML = '<div style="font-size:11px; color:#8a7f68; font-weight:900; letter-spacing:2px; margin-bottom:6px;">NEW CLASS UNLOCKED</div><div style="font-size:22px; font-weight:900; color:' + c.color + '; margin-bottom:10px;">' + c.name + '</div><button class="ui-btn" style="border-color:' + c.color + '; color:' + c.color + '; padding:8px 16px; font-size:12px;" onclick="Game.switchTab(' + Q + 'classes' + Q + ');">VIEW IN CLASSES</button>';
                 Audio.play('pickup');
                 Toast.show('Unlocked: ' + c.name, 'success');
                 self.popText(State.p.x, State.p.y, 'CLASS UNLOCKED!', c.color);
             } else if (lootItem) {
                 var placed = self.addItem(lootItem);
                 var rc = RARITIES[lootItem.rarity].c;
-                if (placed) { resEl.innerHTML = '<div style="font-size:11px; color:#aaa; font-weight:900;">RELIC ACQUIRED</div><div style="font-size:18px; font-weight:900; color:' + rc + '; margin-bottom:4px;">' + lootItem.name + '</div><div style="font-size:11px; color:#777;">Added to inventory</div>'; Audio.play('pickup'); Toast.show('Acquired: ' + lootItem.name, 'success'); }
-                else { State.p.gold += lootItem.val; resEl.innerHTML = '<div style="font-size:11px; color:#ef4444; font-weight:900;">INVENTORY FULL</div><div style="font-size:16px; font-weight:900; color:#f59e0b;">Relic auto-sold</div><div style="font-size:12px; color:#f59e0b; font-weight:bold;">+' + lootItem.val + ' G</div>'; Audio.play('error'); Toast.show('Relic auto-sold (inv full)', 'warn'); }
+                if (placed) { resEl.innerHTML = '<div style="font-size:11px; color:#8a7f68; font-weight:900;">RELIC ACQUIRED</div><div style="font-size:18px; font-weight:900; color:' + rc + '; margin-bottom:4px;">' + lootItem.name + '</div><div style="font-size:11px; color:#5a5245;">Added to inventory</div>'; Audio.play('pickup'); Toast.show('Acquired: ' + lootItem.name, 'success'); }
+                else { State.p.gold += lootItem.val; resEl.innerHTML = '<div style="font-size:11px; color:#c84040; font-weight:900;">INVENTORY FULL</div><div style="font-size:16px; font-weight:900; color:#c9941a;">Relic auto-sold</div><div style="font-size:12px; color:#c9941a; font-weight:bold;">+' + lootItem.val + ' G</div>'; Audio.play('error'); Toast.show('Relic auto-sold (inv full)', 'warn'); }
             }
             self.saveGame();
             self.renderShrineUI();
@@ -2302,11 +2328,11 @@ var Game = {
 
     processBossRewards: function(item) {
         State.p.spins++;
-        this.popText(State.p.x, State.p.y - 85, 'BOSS SOUL OBTAINED!', '#f59e0b', 5, 20);
+        this.popText(State.p.x, State.p.y - 85, 'BOSS SOUL OBTAINED!', '#c9941a', 5, 20);
         Toast.show('+1 Boss Soul', 'success');
-        var vT = '<div style="margin-bottom:10px; font-size:12px; color:#aaa;">Boss Defeated! (+1 Soul)</div>';
-        if (this.addItem(item)) vT += '<div style="background:#111; border:1px solid #333; padding:10px; border-radius:4px;"><span style="font-size:18px; color:' + RARITIES[item.rarity].c + '; font-weight:bold;">[ ' + item.name + ' ]</span><br><span style="font-size:10px;color:#888;">' + item.bossCat + '</span></div>';
-        else { State.p.gold += item.val; vT += '<div style="color:#ef4444;">INV FULL. SOLD FOR ' + item.val + ' G.</div>'; }
+        var vT = '<div style="margin-bottom:10px; font-size:12px; color:#8a7f68;">Boss Defeated! (+1 Soul)</div>';
+        if (this.addItem(item)) vT += '<div style="background:#100d09; border:1px solid #4a4133; padding:10px;"><span style="font-size:18px; color:' + RARITIES[item.rarity].c + '; font-weight:bold;">[ ' + item.name + ' ]</span><br><span style="font-size:10px;color:#8a7f68;">' + item.bossCat + '</span></div>';
+        else { State.p.gold += item.val; vT += '<div style="color:#c84040;">INV FULL. SOLD FOR ' + item.val + ' G.</div>'; }
         var vr = document.getElementById('victory-rewards'); if (vr) vr.innerHTML = vT;
     },
 
@@ -2348,9 +2374,9 @@ var Game = {
         }
         this.renderShopGrid();
         this.renderShopInvGrid();
-        var g = document.getElementById('shop-gold'); if (g) g.innerText = '💰 ' + State.p.gold + 'G';
-        var sd = document.getElementById('shop-details'); if (sd) sd.innerHTML = '<div style="color:#777; font-style:italic; padding:20px 0; text-align:center;">[ Click an item to buy ]</div>';
-        var sdd = document.getElementById('shop-sell-details'); if (sdd) sdd.innerHTML = '<div style="color:#777; font-style:italic; padding:20px 0; text-align:center;">[ Click an item from your bag ]</div>';
+        var g = document.getElementById('shop-gold'); if (g) g.innerText = State.p.gold + ' G';
+        var sd = document.getElementById('shop-details'); if (sd) sd.innerHTML = '<div style="color:#5a5245; font-style:italic; padding:20px 0; text-align:center;">[ Click an item to buy ]</div>';
+        var sdd = document.getElementById('shop-sell-details'); if (sdd) sdd.innerHTML = '<div style="color:#5a5245; font-style:italic; padding:20px 0; text-align:center;">[ Click an item from your bag ]</div>';
     },
     rerollShop: function() {
         if (State.p.gold < 200) { Audio.play('error'); Toast.show('Need 200G to restock', 'error'); return; }
@@ -2387,12 +2413,12 @@ var Game = {
         var cost = Math.floor(it.val * CONFIG.MERCHANT_PRICE_MULT);
         var canA = State.p.gold >= cost;
         var statRows = '';
-        for (var s in it.stats) statRows += '<div style="display:flex; justify-content:space-between; font-size:11px; padding:2px 0;"><span style="color:#999;">' + s.toUpperCase() + '</span><span style="color:#fff;">+' + it.stats[s] + '</span></div>';
+        for (var s in it.stats) statRows += '<div style="display:flex; justify-content:space-between; font-size:11px; padding:2px 0;"><span style="color:#8a7f68;">' + s.toUpperCase() + '</span><span style="color:#c8bfa8;">+' + it.stats[s] + '</span></div>';
         var html = '';
         html += '<div style="font-size:15px; font-weight:bold; color:' + RARITIES[it.rarity].c + '; margin-bottom:6px;">' + it.name + '</div>';
-        html += '<div style="font-size:11px; color:#888; margin-bottom:8px;">Lv.' + it.lvl + ' | ' + it.type.toUpperCase() + ' | ' + it.rarity + '</div>';
+        html += '<div style="font-size:11px; color:#8a7f68; margin-bottom:8px;">Lv.' + it.lvl + ' | ' + it.type.toUpperCase() + ' | ' + it.rarity + '</div>';
         html += statRows;
-        html += '<div style="font-size:14px; color:#f59e0b; font-weight:bold; margin:10px 0;">Cost: ' + cost + ' G</div>';
+        html += '<div style="font-size:14px; color:#c9941a; font-weight:bold; margin:10px 0;">Cost: ' + cost + ' G</div>';
         html += '<button class="ui-btn ui-btn-primary" style="width:100%; padding:10px;" ' + (canA ? '' : 'disabled') + ' onclick="Game.buyShopItem(' + idx + ')">' + (canA ? 'PURCHASE' : 'NOT ENOUGH GOLD') + '</button>';
         det.innerHTML = html;
     },
@@ -2415,8 +2441,8 @@ var Game = {
         var sv = Math.max(1, Math.floor(it.val * 0.5));
         var html = '';
         html += '<div style="font-size:15px; font-weight:bold; color:' + RARITIES[it.rarity].c + '; margin-bottom:6px;">' + it.name + '</div>';
-        html += '<div style="font-size:11px; color:#888; margin-bottom:12px;">Sell value: ' + sv + ' G</div>';
-        html += '<button class="ui-btn" style="width:100%; color:#f59e0b; border-color:#f59e0b; padding:10px;" onclick="Game.sellShopItem(' + idx + ')">SELL</button>';
+        html += '<div style="font-size:11px; color:#8a7f68; margin-bottom:12px;">Sell value: ' + sv + ' G</div>';
+        html += '<button class="ui-btn" style="width:100%; color:#c9941a; border-color:#c9941a; padding:10px;" onclick="Game.sellShopItem(' + idx + ')">SELL</button>';
         det.innerHTML = html;
     },
     sellShopItem: function(idx) {
@@ -2441,11 +2467,11 @@ var Game = {
             var unlocked = State.dungeons.unlocked > idx;
             var meetsLv = State.p && State.p.lvl >= d.reqLvl;
             var status = unlocked ? (meetsLv ? 'READY' : 'LV ' + d.reqLvl) : 'LOCKED';
-            var sc = unlocked ? (meetsLv ? '#4ade80' : '#f59e0b') : '#ef4444';
+            var sc = unlocked ? (meetsLv ? '#7ab87a' : '#c9941a') : '#c84040';
             var clickable = unlocked && meetsLv;
             h += '<div class="dg-card" style="' + (unlocked ? '' : 'opacity:0.55; filter:grayscale(1);') + '" ' + (clickable ? 'onclick="Game.selectDungeon(' + Q + d.id + Q + ')"' : '') + '>';
-            h += '<div><div style="color:#fff; font-size:15px; font-weight:bold;">' + d.name + '</div>';
-            h += '<div style="color:#888; font-size:11px; margin-top:4px;">Lv ' + d.reqLvl + ' | Enemies ' + d.minE + '-' + d.maxE + '</div></div>';
+            h += '<div><div style="color:#c8bfa8; font-size:15px; font-weight:bold;">' + d.name + '</div>';
+            h += '<div style="color:#8a7f68; font-size:11px; margin-top:4px;">Lv ' + d.reqLvl + ' | Enemies ' + d.minE + '-' + d.maxE + '</div></div>';
             h += '<div style="color:' + sc + '; font-weight:bold; font-size:12px;">' + status + '</div>';
             h += '</div>';
         });
@@ -2458,7 +2484,7 @@ var Game = {
         else {
             this.selectedDungeonId = null;
             var det = document.getElementById('dungeon-details');
-            if (det) det.innerHTML = '<div style="color:#888; text-align:center; padding:30px;">No dungeons available.</div>';
+            if (det) det.innerHTML = '<div style="color:#8a7f68; text-align:center; padding:30px;">No dungeons available.</div>';
         }
     },
     selectDungeon: function(id) { this.selectedDungeonId = id; this.showDungeonDetails(); },
@@ -2472,17 +2498,17 @@ var Game = {
         var meetsLv = State.p && State.p.lvl >= d.reqLvl;
         var canStart = unlocked && meetsLv;
         if (!canStart) {
-            det.innerHTML = '<div style="color:#ef4444; text-align:center; padding:30px; font-weight:bold;">' + (!unlocked ? 'LOCKED' : 'NEED LEVEL ' + d.reqLvl) + '</div>';
+            det.innerHTML = '<div style="color:#c84040; text-align:center; padding:30px; font-weight:bold;">' + (!unlocked ? 'LOCKED' : 'NEED LEVEL ' + d.reqLvl) + '</div>';
             return;
         }
         var html = '';
-        html += '<div style="font-size:20px; font-weight:bold; color:#f59e0b; margin-bottom:12px;">' + d.name + '</div>';
-        html += '<div style="color:#aaa; font-size:12px; margin-bottom:16px; line-height:1.7;">';
-        html += 'Enemy Lv: <span style="color:#ef4444; font-weight:bold;">' + d.minE + ' - ' + d.maxE + '</span><br>';
-        html += 'Required Lv: <span style="color:#3b82f6; font-weight:bold;">' + d.reqLvl + '</span><br>';
-        html += 'Boss: <span style="color:#a855f7; font-weight:bold;">' + d.boss.replace(/_/g, ' ').toUpperCase() + '</span>';
+        html += '<div style="font-size:20px; font-weight:bold; color:#c9941a; margin-bottom:12px;">' + d.name + '</div>';
+        html += '<div style="color:#8a7f68; font-size:12px; margin-bottom:16px; line-height:1.7;">';
+        html += 'Enemy Lv: <span style="color:#c84040; font-weight:bold;">' + d.minE + ' - ' + d.maxE + '</span><br>';
+        html += 'Required Lv: <span style="color:#6a9ad8; font-weight:bold;">' + d.reqLvl + '</span><br>';
+        html += 'Boss: <span style="color:#8a5a9a; font-weight:bold;">' + d.boss.replace(/_/g, ' ').toUpperCase() + '</span>';
         html += '</div>';
-        html += '<label style="font-size:11px; color:#888; font-weight:bold;">DIFFICULTY</label>';
+        html += '<label style="font-size:11px; color:#8a7f68; font-weight:bold;">DIFFICULTY</label>';
         html += '<select id="dung-diff" class="grid-search" style="width:100%; margin:6px 0 12px 0; padding:8px;">';
         html += '<option value="Normal">Normal</option>';
         html += '<option value="Hard">Hard (1.5x)</option>';
@@ -2537,16 +2563,16 @@ var Game = {
             var q = State.quests[k];
             var pct = Math.min(100, (q.count / q.req) * 100);
             var done = q.completed;
-            h += '<div style="background:#2b2b2b; border:2px solid ' + (done ? '#4ade80' : '#444') + '; border-radius:8px; padding:15px;">';
-            h += '<div style="font-size:15px; font-weight:bold; color:' + (done ? '#4ade80' : '#fff') + '; margin-bottom:4px;">' + q.name + (done ? ' [DONE]' : '') + '</div>';
-            h += '<div style="font-size:12px; color:#aaa; margin-bottom:10px;">' + (q.target === 'boss' ? 'Boss' : 'Minions') + ': ' + q.count + '/' + q.req + '</div>';
-            h += '<div style="height:10px; background:#111; border-radius:5px; overflow:hidden; margin-bottom:10px;">';
-            h += '<div style="height:100%; width:' + pct + '%; background:' + (done ? '#4ade80' : '#f59e0b') + '; transition:width 0.3s;"></div>';
+            h += '<div style="background:#262119; border:2px solid ' + (done ? '#7ab87a' : '#4a4133') + '; padding:15px;">';
+            h += '<div style="font-size:15px; font-weight:bold; color:' + (done ? '#7ab87a' : '#c8bfa8') + '; margin-bottom:4px;">' + q.name + (done ? ' [DONE]' : '') + '</div>';
+            h += '<div style="font-size:12px; color:#8a7f68; margin-bottom:10px;">' + (q.target === 'boss' ? 'Boss' : 'Minions') + ': ' + q.count + '/' + q.req + '</div>';
+            h += '<div style="height:10px; background:#100d09; border:1px solid #4a4133; overflow:hidden; margin-bottom:10px;">';
+            h += '<div style="height:100%; width:' + pct + '%; background:' + (done ? '#7ab87a' : '#c9941a') + '; transition:width 0.3s;"></div>';
             h += '</div>';
-            h += '<div style="font-size:11px; color:#888;">Reward: ' + q.rew.gold + 'G | ' + q.rew.xp + ' XP</div>';
+            h += '<div style="font-size:11px; color:#8a7f68;">Reward: ' + q.rew.gold + 'G | ' + q.rew.xp + ' XP</div>';
             h += '</div>';
         }
-        listEl.innerHTML = h || '<div style="color:#666; text-align:center; padding:20px;">No active bounties.</div>';
+        listEl.innerHTML = h || '<div style="color:#5a5245; text-align:center; padding:20px;">No active bounties.</div>';
     },
 
     doInteract: function() {
@@ -2564,7 +2590,7 @@ var Game = {
                     acted = true;
                     break;
                 } else {
-                    this.popText(State.p.x, State.p.y - 20, 'INVENTORY FULL', '#ef4444');
+                    this.popText(State.p.x, State.p.y - 20, 'INVENTORY FULL', '#c84040');
                 }
             }
         }
@@ -2616,7 +2642,7 @@ var Game = {
     },
     doDash: function(tx, ty, dist) { var a = Math.atan2(ty - State.p.y, tx - State.p.x); State.p.vx = Math.cos(a) * dist; State.p.vy = Math.sin(a) * dist; State.p.invuln = Math.max(State.p.invuln, 0.3); Audio.play('dash'); },
     applyBuff: function(type, dur, val) { State.p.status.push({ type: type, time: dur, val: val }); },
-    selfHeal: function(pct) { State.p.hp = Math.min(State.p.maxHp, State.p.hp + State.p.maxHp * pct); this.popText(State.p.x, State.p.y - 20, '+HP', '#4ade80'); },
+    selfHeal: function(pct) { State.p.hp = Math.min(State.p.maxHp, State.p.hp + State.p.maxHp * pct); this.popText(State.p.x, State.p.y - 20, '+HP', '#7ab87a'); },
 
     update: function(dt) {
         if (!State.p) return;
@@ -2638,7 +2664,7 @@ var Game = {
             if (State.p.status) for (var si = 0; si < State.p.status.length; si++) if (State.p.status[si].type === 'buff_spd') { bs = State.p.status[si]; break; }
             if (bs) spd += bs.val;
             spd *= CONFIG.PLAYER_SPEED_MULT;
-            // ---- Direct velocity: responsive, frame-rate independent ----
+            // Direct velocity: responsive, frame-rate independent
             if (dx !== 0 || dy !== 0) {
                 State.p.vx = dx * spd;
                 State.p.vy = dy * spd;
@@ -2704,7 +2730,7 @@ var Game = {
         var clv = State.unlockedClasses[State.p.class] ? State.unlockedClasses[State.p.class].lvl : 1;
         var cxB = document.getElementById('cxp-bar');
         if (cxB) { cxB.style.width = (cxp / (clv * 100) * 100) + '%'; document.getElementById('cxp-txt').innerText = Math.floor(cxp) + '/' + (clv * 100) + ' C.XP'; }
-        var hl = document.getElementById('hud-level'); if (hl) hl.innerHTML = 'LEVEL: <span style="color:#0ff">' + State.p.lvl + '</span>';
+        var hl = document.getElementById('hud-level'); if (hl) hl.innerHTML = 'LEVEL: <span style="color:#c9941a">' + State.p.lvl + '</span>';
         var hc = document.getElementById('hud-class');
         if (hc) { hc.innerText = (CLASSES[State.p.class] ? CLASSES[State.p.class].name.toUpperCase() : '') + ' (L' + clv + ')'; hc.style.color = CLASSES[State.p.class] ? CLASSES[State.p.class].color : '#fff'; }
         var hg = document.getElementById('hud-gold'); if (hg) hg.innerText = 'GOLD: ' + State.p.gold + 'G';
@@ -2775,15 +2801,15 @@ var Game = {
             else if (iv.name && iv.name.indexOf('SHRINE') !== -1) {
                 ctx.fillStyle = '#171a24'; ctx.fillRect(iv.x - 30, iv.y - 30, 60, 60);
                 ctx.fillStyle = '#223447'; ctx.fillRect(iv.x - 24, iv.y - 36, 48, 44);
-                ctx.fillStyle = '#a855f7'; ctx.shadowColor = '#d8b4fe'; ctx.shadowBlur = 15;
+                ctx.fillStyle = '#8a5a9a'; ctx.shadowColor = '#d8b4fe'; ctx.shadowBlur = 15;
                 ctx.beginPath(); ctx.moveTo(iv.x, iv.y - 28); ctx.lineTo(iv.x + 10, iv.y - 10); ctx.lineTo(iv.x, iv.y + 10); ctx.lineTo(iv.x - 10, iv.y - 10); ctx.fill();
                 ctx.shadowBlur = 0;
-                if (State.p && State.p.spins > 0) { ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 12px Courier'; ctx.textAlign = 'center'; ctx.fillText('DATA WAITING', iv.x, iv.y - 48); }
+                if (State.p && State.p.spins > 0) { ctx.fillStyle = '#c9941a'; ctx.font = 'bold 12px Courier'; ctx.textAlign = 'center'; ctx.fillText('DATA WAITING', iv.x, iv.y - 48); }
             }
             else if (iv.name) {
                 var col = (iv.name.indexOf('MERCHANT') !== -1) ? '#2d7e9b' : '#3e845c';
                 ctx.fillStyle = col; ctx.fillRect(iv.x - 16, iv.y - 16, 32, 32);
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 9px Arial'; ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 9px Courier'; ctx.textAlign = 'center';
                 ctx.fillText('[' + iv.name + ']', iv.x, iv.y - 20);
             }
         }
